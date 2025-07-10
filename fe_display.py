@@ -34,11 +34,11 @@ class CBAM(tf.keras.layers.Layer):
 
 # Now load the model
 
-# model = load_model('models/sequential_model.h5')
-# model = load_model('models/sequential_model_improved.h5')
+#model = load_model('models/sequential_model.h5')
+model = load_model('models/sequential_model_improved.h5')
 
-# model = load_model('models/cbam_cnn_stress_detection.h5', custom_objects={'CBAM': CBAM})
-model = load_model('models/cbam_cnn_stress_detection_improved.h5', custom_objects={'CBAM': CBAM})
+#model = load_model('models/cbam_cnn_stress_detection.h5', custom_objects={'CBAM': CBAM})
+#model = load_model('models/cbam_cnn_stress_detection_improved.h5', custom_objects={'CBAM': CBAM})
 
 
 
@@ -122,7 +122,7 @@ if __name__ == "__main__":
                         else:
                             print("Stress level: Normal")
 
-            cv2.imshow('Webcam', frame)
+            # cv2.imshow('Webcam', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 

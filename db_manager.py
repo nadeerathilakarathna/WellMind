@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, Date, Float, Boolean, ForeignKey, DateTime, create_engine
 from sqlalchemy.orm import relationship, declarative_base,sessionmaker
 from datetime import datetime
+import pandas as pd
+from datetime import datetime, date
 
 Base = declarative_base()
 engine = create_engine('sqlite:///databases/wellmind.db')  # Use your database URL
@@ -184,3 +186,39 @@ def store_facial_expression_data(user_id,stress_percentage):
     close_session(session)
 
 
+def export_facial_expression_data_to_csv(start_date, end_date, file_path='facial_expression_filtered.csv'):
+    """
+    Export facial expression data between start_date and end_date to a CSV file.
+    Dates should be in 'YYYY-MM-DD' format.
+    """
+    session = get_session()
+
+    # Convert string dates to datetime
+    start_datetime = datetime.strptime(start_date, "%Y-%m-%d")
+    end_datetime = datetime.strptime(end_date, "%Y-%m-%d")
+    end_datetime = datetime.combine(end_datetime, datetime.max.time())  # include full end day
+
+    # Query data between the range
+    records = session.query(FacialExpressionData).filter(
+        FacialExpressionData.timestamp >= start_datetime,
+        FacialExpressionData.timestamp <= end_datetime
+    ).all()
+
+    # Convert to list of dicts
+    data = [
+        {
+            "facial_data_id": r.facial_data_id,
+            "user_id": r.user_id,
+            "timestamp": r.timestamp,
+            "stress_percentage": r.stress_percentage
+        }
+        for r in records
+    ]
+
+
+    # Export to CSV
+    df = pd.DataFrame(data)
+    df.to_csv(file_path, index=False)
+
+    close_session(session)
+    print(f"Exported {len(df)} records from {start_date} to {end_date} ➝ {file_path}")
