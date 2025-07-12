@@ -1,11 +1,16 @@
+import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # 0 = all logs, 1 = filter INFO, 2 = +WARNING, 3 = +ERROR
+
+
 import cv2
 import numpy as np
 import tensorflow as tf
 import time
 from collections import deque
-import db_manager  # You must have this file with your DB models
+# import db_manager  # You must have this file with your DB models
+import multiprocessing
 from multiprocessing import Process, Manager
-import stress_plotter
 from tensorflow.keras.models import load_model
 
 
@@ -33,9 +38,10 @@ class CBAM(tf.keras.layers.Layer):
         return tf.keras.layers.Multiply()([channel_refined, spatial_att])
 
 # Now load the model
-
+print(" Loading model...")
 #model = load_model('models/sequential_model.h5')
 model = load_model('models/sequential_model_improved.h5')
+# model = load_model('models/sequential_model_improved.h5', compile=False)
 
 #model = load_model('models/cbam_cnn_stress_detection.h5', custom_objects={'CBAM': CBAM})
 #model = load_model('models/cbam_cnn_stress_detection_improved.h5', custom_objects={'CBAM': CBAM})
@@ -46,14 +52,17 @@ model = load_model('models/sequential_model_improved.h5')
 # model = tf.keras.models.load_model('models/cbam_cnn_stress_detection.h5')
 
 # Load Haar cascade
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+#face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+face_cascade = cv2.CascadeClassifier('haarcascades/haarcascade_frontalface_default.xml')
 
+print(" Opening webcam...")
 # Initialize webcam
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FPS, 30)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
+print(" Starting detection loop...")
 # Stress detection parameters
 WINDOW_SIZE = 5
 stress_queue = deque(maxlen=WINDOW_SIZE)
@@ -72,25 +81,15 @@ def preprocess_face(frame):
     return face
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     with Manager() as manager:
         stress_list = manager.list()
 
-        # Start plotter process
-        plot_process = Process(target=stress_plotter.live_plot, args=(stress_list,))
-        plot_process.start()
+        ### Start plotter process
+        # plot_process = Process(target=stress_plotter.live_plot, args=(stress_list,))
+        # plot_process.start()
 
-        # DB session
-        session = db_manager.Session()
-        user = session.query(db_manager.User).first()
-        if user is None:
-            db_manager.create_user(
-                first_name="John",
-                last_name="Doe",
-                gender="M",
-                birthday="1990-01-01"
-            )
-            user = session.query(db_manager.User).first()
-        user_id = user.user_id
+        ### Initialize DB session and get user ID as user_id variable
 
         # Real-time detection loop
         last_capture = time.time()
@@ -112,10 +111,7 @@ if __name__ == "__main__":
                         stress_percentage = np.mean(stress_queue)
                         print(f"Stress Percentage: {stress_percentage:.2f}")
 
-                        db_manager.store_facial_expression_data(
-                            user_id=user_id,
-                            stress_percentage=stress_percentage
-                        )
+                        ### Store stress data in the database using user_id variable and current stress_presentage
 
                         if stress_percentage > STRESS_THRESHOLD:
                             print("Stress Alert: High stress detected!")
@@ -128,4 +124,4 @@ if __name__ == "__main__":
 
         cap.release()
         cv2.destroyAllWindows()
-        plot_process.terminate()
+        # plot_process.terminate()
