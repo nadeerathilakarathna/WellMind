@@ -7,7 +7,7 @@ import sqlite3
 from datetime import datetime
 import pandas as pd
 
-model = joblib.load('random_forest_stress_model.joblib')
+model = joblib.load('models/keystroke/random_forest_stress_model.joblib')
 
 key_down_times = {}
 hold_times = []
@@ -51,8 +51,10 @@ def on_release(key):
         else:
             error_count += 1
 
-    if key == keyboard.Key.esc:
+
+    if key == keyboard.Key.pause:
         return False
+
 
 def calculate_features(duration_minutes=2):
     global error_count, key_events_count
@@ -77,10 +79,10 @@ def calculate_features(duration_minutes=2):
     return [mean_hold, mean_flight, typing_speed, error_rate]
 
 def predict_and_store():
-    conn_thread = sqlite3.connect('stress_predictions.db', check_same_thread=False)
+    conn_thread = sqlite3.connect('databases/wellmind.db', check_same_thread=False)
     cursor_thread = conn_thread.cursor()
     cursor_thread.execute('''
-        CREATE TABLE IF NOT EXISTS stress_summary (
+        CREATE TABLE IF NOT EXISTS keystroke_summary (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp TEXT NOT NULL,
             stress_label INTEGER NOT NULL,
@@ -91,8 +93,8 @@ def predict_and_store():
 
     feature_names = ['mean_hold_time', 'mean_flight_time', 'avg_typing_speed', 'avg_error_rate']
     MIN_KEYSTROKES = 8
-    interval_minutes = 2
-    summary_window = 20  # in minutes
+    interval_minutes = 0.5 #default 2
+    summary_window = 5  # in minutes   #default 20
     predictions = []
 
     while True:
@@ -125,13 +127,16 @@ def predict_and_store():
             print(f"[{summary_timestamp}] 🔍 20-min Summary → Stress %: {stress_percentage:.1f}%, Label: {majority_label}")
 
             cursor_thread.execute(
-                'INSERT INTO stress_summary (timestamp, stress_label, stress_percentage) VALUES (?, ?, ?)',
+                'INSERT INTO keystroke_summary (timestamp, stress_label, stress_percentage) VALUES (?, ?, ?)',
                 (summary_timestamp, majority_label, stress_percentage)
             )
             conn_thread.commit()
 
             predictions.clear()  # reset for next 20-min block
 
+
+
+'''
 def main():
     print("Starting keystroke capture. Press ESC to stop.")
 
@@ -145,3 +150,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+'''
