@@ -4,7 +4,7 @@ import pandas as pd
 import os
 
 # DATABASE CONNECTION
-DB_NAME = "wellmind.db"
+DB_NAME = "databases/wellmind.db"
 
 def create_connection():
     return sqlite3.connect(DB_NAME)
