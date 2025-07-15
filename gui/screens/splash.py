@@ -4,12 +4,14 @@ import os
 from services.database import fetch_latest_user
 from screens.dashboard import DashboardScreen
 from screens.user_registration import UserRegistrationScreen
+import sys
 
 class SplashScreen(ctk.CTkFrame):
     def __init__(self, root):
         super().__init__(root, fg_color="transparent") # Use transparent for frame to let root's color show
         self.root = root
         self.pack(fill=ctk.BOTH, expand=True)
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
         self.display_content()
         self.after(2000, self.navigate_next_screen)  # Navigate after 2 sec
@@ -28,6 +30,8 @@ class SplashScreen(ctk.CTkFrame):
         ctk.CTkLabel(self, text="V.1.0.0.1", font=ctk.CTkFont("Poppins", 14)).pack(pady=(20, 0))
 
     def navigate_next_screen(self):
+        if not self.winfo_exists():
+            return
         self.pack_forget()
         try:
             user = fetch_latest_user()
@@ -38,3 +42,14 @@ class SplashScreen(ctk.CTkFrame):
         except Exception as e:
             print(f"Error fetching user data: {e}")
             UserRegistrationScreen(self.root)
+
+    def on_close(self):
+        # You can show a confirm messagebox here
+        print("Window is closing...")
+
+        # Optionally cancel scheduled .after() callback
+        self.after_cancel(self.navigate_next_screen)
+
+        # Close the app completely
+        self.root.destroy()
+        sys.exit(0)

@@ -46,7 +46,8 @@ class ProfilePopup(ctk.CTkToplevel):
             return ctk.CTkImage(light_image=img_pil, dark_image=img_pil, size=icon_size)
         except FileNotFoundError:
             print(f"Warning: Icon '{icon_name}' not found at {icon_path}. Using placeholder.")
-            return ctk.CTkImage(Image.new('RGBA', icon_size, (24, 24), (255, 255, 255, 0)), size=icon_size)
+            return ctk.CTkImage(Image.new('RGBA', icon_size, (255, 255, 255, 0)), size=icon_size)
+            
         except Exception as e:
             print(f"Error loading icon '{icon_name}': {e}. Using placeholder.")
             return ctk.CTkImage(Image.new('RGBA', icon_size, (24, 24), (255, 255, 255, 0)), size=icon_size)
