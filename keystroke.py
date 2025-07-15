@@ -94,8 +94,8 @@ def predict_and_store():
 
     feature_names = ['mean_hold_time', 'mean_flight_time', 'avg_typing_speed', 'avg_error_rate']
     MIN_KEYSTROKES = 8
-    interval_minutes = 2 #2
-    summary_window = 20  # in minutes #20
+    interval_minutes = 0.1 #2
+    summary_window = 0.5  # in minutes #20
     max_intervals = summary_window // interval_minutes
 
     predictions = []

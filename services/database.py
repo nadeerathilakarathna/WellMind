@@ -1,7 +1,8 @@
 import sqlite3
-from datetime import datetime
+from datetime import datetime,timedelta
 import pandas as pd
 import os
+import numpy as np
 
 # DATABASE CONNECTION
 DB_NAME = "databases/wellmind.db"
@@ -286,4 +287,60 @@ def monitoring_facial_expression(value=None):
             result = cursor.fetchone()
             conn.close()
             return bool(result[0])
+
+
+
+def get_latest_facial_expression_data(duration=20, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
+
+    start_time = datetime.strptime(timestamp,"%Y-%m-%d %H:%M:%S")
+    before_time = start_time - timedelta(minutes=duration)
+    start_time = datetime.strftime(start_time,"%Y-%m-%d %H:%M:%S")
+    before_time = datetime.strftime(before_time,"%Y-%m-%d %H:%M:%S")
+
+
+    conn = create_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute("SELECT datetime('now')")
+    print("SQLite now (UTC):", cursor.fetchone()[0])
+
+    # start_time = '2025-07-15 17:04:00'
+    # end_time = '2025-07-15 17:05:00'
+
+    cursor.execute("""
+        SELECT * FROM facial_expression_data
+        WHERE timestamp BETWEEN ? AND ?
+    """, (before_time, start_time))
+
+    rows = cursor.fetchall()
+
+    stress_values = [row[2] for row in rows]
+    stress_array = np.array(stress_values, dtype=np.float32)
+
+    if len(stress_array) > 0:
+        mean_value = np.mean(stress_array)
+        print(len(stress_values))
+        mean_value = round(float(mean_value), 2)
+
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS facial_expression_summary (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            stress_value REAL NOT NULL
+        )''')
+
+        conn.commit()
+
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute('''
+            INSERT INTO facial_expression_summary (timestamp, stress_value)
+            VALUES (?, ?)
+        ''', (timestamp, mean_value))
+        conn.commit()
+        conn.close()
+        return mean_value
+    else:
+        conn.close()
+        return "No data available"
 

@@ -97,8 +97,9 @@ def start_internet_listener():
     while True:
         time.sleep(1)
 
-if __name__ == "__main__":
 
+def run_avatar():
+# if __name__ == "__main__":
     # root = tk.Tk()
         # Set the appearance of app
     ctk.set_appearance_mode("System")
@@ -125,3 +126,5 @@ if __name__ == "__main__":
     threading.Thread(target=start_internet_listener, daemon=True).start()
 
     root.mainloop()  # Use root.mainloop() instead of avatar_overlay_instance.mainloop()
+
+
