@@ -2,7 +2,14 @@ import customtkinter as ctk
 from PIL import Image
 import os
 import calendar
-import datetime # Re-import datetime for current year (for dynamic year list)
+import datetime
+from tkinter import messagebox
+from screens.dashboard import DashboardScreen
+from services.database import (
+    create_user_table,
+    insert_user,
+    create_user_preferences_mapping_table
+)
 
 # --- UserRegistrationScreen Class ---
 class UserRegistrationScreen(ctk.CTkFrame):
@@ -36,7 +43,7 @@ class UserRegistrationScreen(ctk.CTkFrame):
         ctk.CTkLabel(self, image=self.logo_image, text="").pack(pady=(40, 10))
 
         # Step Indicator Top-Right
-        ctk.CTkLabel(self, text="Step 1 of 2", font=ctk.CTkFont("Poppins", 12)).place(relx=0.95, rely=0.05, anchor="ne")
+        ctk.CTkLabel(self, text="Step 1 of 1", font=ctk.CTkFont("Poppins", 12)).place(relx=0.95, rely=0.05, anchor="ne")
 
         ctk.CTkLabel(self, text="Welcome to WellMind!", font=ctk.CTkFont("Poppins", 26, "bold")).pack(pady=(20, 5))
         ctk.CTkLabel(self, text="Create Your Profile Here", font=ctk.CTkFont("Poppins", 14)).pack(pady=(0, 20))
@@ -121,12 +128,12 @@ class UserRegistrationScreen(ctk.CTkFrame):
                                    font=ctk.CTkFont("Poppins", 14), width=120, height=40,
                                    command=self.root.destroy)
 
-        next_btn = ctk.CTkButton(button_frame, text="Next", fg_color="#0047AB", hover_color="#003380",
+        register_btn = ctk.CTkButton(button_frame, text="Register", fg_color="#0047AB", hover_color="#003380",
                                  font=ctk.CTkFont("Poppins", 14), width=120, height=40,
-                                 command=self.goto_preferences)
+                                 command=self.register_user)
 
         cancel_btn.grid(row=0, column=0, padx=30)
-        next_btn.grid(row=0, column=1, padx=30)
+        register_btn.grid(row=0, column=1, padx=30)
 
     def add_entry_field(self, parent, label_text, row, col):
         field_frame = ctk.CTkFrame(parent, fg_color="transparent")
@@ -214,7 +221,7 @@ class UserRegistrationScreen(ctk.CTkFrame):
                 return True
         return False # Should not reach here for supported widgets
 
-    def goto_preferences(self):
+    def register_user(self):
         # Hide all error messages first before re-validating
         self.first_name_error_label.pack_forget()
         self.last_name_error_label.pack_forget()
@@ -239,15 +246,14 @@ class UserRegistrationScreen(ctk.CTkFrame):
             # If all parts of the birthday are selected, ensure error is hidden
             self.birthday_error_label.pack_forget()
 
-
         if not self.validate_field(self.gender_combobox, self.gender_error_label):
             all_valid = False
 
         if not all_valid:
-            ctk.CTkMessagebox.show_warning("Missing Information", "Please fill in all required fields.")
+            messagebox.showwarning("Missing Information", "Please fill in all required fields.")
             return
 
-        # If all fields are valid, proceed
+        # If all fields are valid, proceed with registration
         first_name = self.first_name_entry.get()
         last_name = self.last_name_entry.get()
 
@@ -260,8 +266,18 @@ class UserRegistrationScreen(ctk.CTkFrame):
 
         gender = self.gender_combobox.get()
 
-        print(f"User Data: {first_name}, {last_name}, {birthday}, {gender}")
+        # Create necessary tables
+        create_user_table()
+        create_user_preferences_mapping_table()
 
+        # Insert user into database
+        insert_user(
+            first_name,
+            last_name,
+            gender,
+            birthday
+        )
+
+        # Navigate to dashboard
         self.pack_forget()
-        from screens.select_preferences import SelectPreferencesScreen
-        SelectPreferencesScreen(self.root, self.root, first_name, last_name, birthday, gender)
+        DashboardScreen(self.root, self.root)

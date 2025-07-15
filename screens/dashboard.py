@@ -97,8 +97,8 @@ class DashboardScreen(ctk.CTkFrame):
 
         for title, value in [
             ("Current Stress", "68%"),
-            ("Weekly Average Stress", "54%"),
-            ("Preferences", "Music, Quotes"),
+            ("Average Stress", "54%"),
+            ("Peak Stress", "85% (Thursday, 2:45 PM)"),
         ]:
             card = ctk.CTkFrame(card_frame, corner_radius=12, width=140, height=100, fg_color="#E3F2FD")
             card.pack(side="left", padx=10, pady=10, fill="both", expand=True)
