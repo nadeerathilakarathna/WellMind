@@ -222,3 +222,68 @@ def get_user_preferences_by_user_id(user_id):
             result[category_name] = []
         result[category_name].append(preference_name)
     return result
+
+
+
+#Store Facial Expression Data
+def store_facial_expression_data(stress_percentage):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS facial_expression_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            stress_value REAL NOT NULL
+        )
+    ''')
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    cursor.execute('''
+        INSERT INTO facial_expression_data (timestamp, stress_value)
+        VALUES (?, ?)
+    ''', (timestamp, stress_percentage))
+    conn.commit()
+    conn.close()
+
+
+#Camera on and Off
+def monitoring_facial_expression(value=None):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS facial_expression_monitoring (
+            value BOOLEAN
+        )
+    ''')
+
+    cursor.execute("SELECT COUNT(*) FROM facial_expression_monitoring")
+    row_count = cursor.fetchone()[0]
+    if row_count == 0:
+        cursor.execute("INSERT INTO facial_expression_monitoring (value) VALUES (?)", (True,))
+        conn.commit()
+
+    if value is not None:
+        cursor.execute("UPDATE facial_expression_monitoring SET value = ?", (value,))
+        conn.commit()
+        conn.close()
+        return bool(value)
+    else:
+        cursor.execute("SELECT COUNT(*) FROM facial_expression_monitoring")
+        row_count = cursor.fetchone()[0]
+
+        
+
+        if row_count == 0:
+            cursor.execute("INSERT INTO facial_expression_monitoring (value) VALUES (?)", (True,))
+            conn.commit()
+            conn.close()
+            return True
+        else:
+            cursor.execute("SELECT value FROM facial_expression_monitoring LIMIT 1")
+            result = cursor.fetchone()
+            conn.close()
+            return bool(result[0])
+
