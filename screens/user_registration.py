@@ -8,7 +8,6 @@ from screens.dashboard import DashboardScreen
 from services.database import (
     create_user_table,
     insert_user,
-    create_user_preferences_mapping_table
 )
 
 # --- UserRegistrationScreen Class ---
@@ -268,7 +267,6 @@ class UserRegistrationScreen(ctk.CTkFrame):
 
         # Create necessary tables
         create_user_table()
-        create_user_preferences_mapping_table()
 
         # Insert user into database
         insert_user(
