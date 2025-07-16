@@ -3,7 +3,7 @@ from datetime import datetime
 import time
 
 def calculate_facial_expression_summary():
-    duration = 1
+    duration = 5
     print('''
     
     
@@ -16,5 +16,5 @@ def calculate_facial_expression_summary():
 
         value = get_latest_facial_expression_data(duration, timestamp)
         print(f"Timestamp: {timestamp} - Stress Value: {value}")
-        time.sleep(60*20)
+        time.sleep(60*5)
 
