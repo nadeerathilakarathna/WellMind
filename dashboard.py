@@ -7,8 +7,6 @@ import ctypes
 
 from services.database import (
     create_user_table,
-    create_preferences_tables,
-    import_preferences_from_excel
 )
 
 def main():
@@ -26,8 +24,6 @@ def main():
 
     # Initialize database
     create_user_table()
-    create_preferences_tables()
-    import_preferences_from_excel()
 
     # Start Splash screen
     SplashScreen(root)
