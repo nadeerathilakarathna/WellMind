@@ -1,0 +1,25 @@
+RL03001: Take a 3-minute mindful break.
+RL03002: Walk to another room and return slowly.
+RL03003: Follow a breathing video or audio.
+RL03004: Play a relaxing track and close your eyes.
+RL03005: Do 5 deep inhale–exhale cycles.
+RL03006: Gaze at a nature image for 1 minute.
+RL03007: Watch a 1-minute calming YouTube clip.
+RL03008: Turn away from your screen and sit quietly.
+RL03009: Open a window and feel the air.
+RL03010: Use a guided meditation app for 2 mins.
+RL03011: Write one positive affirmation.
+RL03012: Do 10 slow shoulder shrugs.
+RL03013: Touch your toes (or reach toward them).
+RL03014: Squeeze your fists tightly, then release.
+RL03015: Journal one sentence about how you feel.
+RL03016: Lie down briefly if possible.
+RL03017: Dim the lights or screen for 2 minutes.
+RL03018: Take 5 full breaths while focusing on your heartbeat.
+RL03019: Reposition your desk lamp for less glare.
+RL03020: Tidy up one item near your workspace.
+RL03021: Turn on ambient background music.
+RL03022: Close your eyes and visualize a peaceful forest.
+RL03023: Read a short calming paragraph from your notes.
+RL03024: Play with a fidget toy or pen.
+RL03025: Stand up and shake out your limbs.

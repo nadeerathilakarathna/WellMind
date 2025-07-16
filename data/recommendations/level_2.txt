@@ -1,0 +1,25 @@
+RL02001: Stand up and do a quick body stretch.
+RL02002: Listen to a calming instrumental track.
+RL02003: Walk to a window and gaze outside.
+RL02004: Move your neck in wide circles.
+RL02005: Rub your hands together for warmth.
+RL02006: Practice breathing: inhale 4s, hold 4s, exhale 4s.
+RL02007: Take 2 minutes to reorganize your desk.
+RL02008: Gently stretch your legs under the table.
+RL02009: Hold a warm object and focus on its feel.
+RL02010: Slowly sip a hot drink.
+RL02011: Lower screen brightness temporarily.
+RL02012: Play soft white noise in the background.
+RL02013: Shake your hands to release tension.
+RL02014: Visualize a peaceful place for 30 seconds.
+RL02015: Use a hand grip or stress ball briefly.
+RL02016: Rub your forehead and cheeks lightly.
+RL02017: Change your sitting posture entirely.
+RL02018: Read one inspiring quote from your collection.
+RL02019: Walk slowly around the room for 1 minute.
+RL02020: Check and improve your posture.
+RL02021: Tap your fingers rhythmically on the desk.
+RL02022: Do ankle circles under your chair.
+RL02023: Hold your shoulders tight for 5s, then release.
+RL02024: Clap your hands softly 5 times.
+RL02025: Play a 1-minute nature sound clip.
