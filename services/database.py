@@ -72,7 +72,7 @@ def delete_user(user_id):
     conn.close()
 
 # CREATE PREFERENCES CATEGORY AND PREFERENCES TABLE
-def create_preferences_tables():
+# def create_preferences_tables():
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -95,7 +95,7 @@ def create_preferences_tables():
     conn.close()
 
 # IMPORT DATA TO THE PREFERENCES TABLE
-def import_preferences_from_excel(excel_path="assets/documents/preferences.xlsx"):
+# def import_preferences_from_excel(excel_path="assets/documents/preferences.xlsx"):
     if not os.path.exists(excel_path):
         print(f"File not found: {excel_path}")
         return
@@ -144,7 +144,7 @@ def import_preferences_from_excel(excel_path="assets/documents/preferences.xlsx"
     conn.close()
 
 # CREATE USER PREFERENCES MAPPING TABLE
-def create_user_preferences_mapping_table():
+# def create_user_preferences_mapping_table():
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -161,7 +161,7 @@ def create_user_preferences_mapping_table():
     conn.close()
 
 # FETCH PREFERENCE CATEGORIES SQL QUERY
-def get_all_categories():
+# def get_all_categories():
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT category_id, category_name FROM preferences_category ORDER BY category_name")
@@ -170,7 +170,7 @@ def get_all_categories():
     return categories
 
 # FETCH CATEGORY WISE PREFERENCES SQL QUERY
-def get_preferences_by_category(category_id):
+# def get_preferences_by_category(category_id):
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -182,7 +182,7 @@ def get_preferences_by_category(category_id):
     return preferences
 
 # FETCH PREFERENCES WITH ID
-def get_preference_id_by_name(name):
+# def get_preference_id_by_name(name):
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT preference_id FROM preferences WHERE preference_name = ?", (name,))
@@ -191,7 +191,7 @@ def get_preference_id_by_name(name):
     return result[0] if result else None
 
 # SAVE USER SELECTED PREFERENCES ON THE DATABASE
-def insert_user_preference_mapping(user_id, preference_id):
+# def insert_user_preference_mapping(user_id, preference_id):
     conn = create_connection()
     cursor = conn.cursor()
     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -203,7 +203,7 @@ def insert_user_preference_mapping(user_id, preference_id):
     conn.close()
 
 # FETCH USER PREFERENCES LIST
-def get_user_preferences_by_user_id(user_id):
+# def get_user_preferences_by_user_id(user_id):
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -224,9 +224,7 @@ def get_user_preferences_by_user_id(user_id):
         result[category_name].append(preference_name)
     return result
 
-
-
-#Store Facial Expression Data
+# STORAGE FOR FACIAL EXPRESSION DATA
 def store_facial_expression_data(stress_percentage):
     conn = create_connection()
     cursor = conn.cursor()
@@ -248,8 +246,7 @@ def store_facial_expression_data(stress_percentage):
     conn.commit()
     conn.close()
 
-
-#Camera on and Off
+# CAMERA ON AND OFF
 def monitoring_facial_expression(value=None):
     conn = create_connection()
     cursor = conn.cursor()
@@ -288,8 +285,7 @@ def monitoring_facial_expression(value=None):
             conn.close()
             return bool(result[0])
 
-
-
+# GET LATEST FACIAL EXPRESSION DATA
 def get_latest_facial_expression_data(duration=20, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
 
     start_time = datetime.strptime(timestamp,"%Y-%m-%d %H:%M:%S")
@@ -344,3 +340,78 @@ def get_latest_facial_expression_data(duration=20, timestamp=datetime.now().strf
         conn.close()
         return "No data available"
 
+# GET LATEST KEYSTROKE DATA
+def get_latest_keystroke_data(duration=20, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
+    start_time = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+    before_time = start_time - timedelta(minutes=duration)
+    start_time = datetime.strftime(start_time, "%Y-%m-%d %H:%M:%S")
+    before_time = datetime.strftime(before_time, "%Y-%m-%d %H:%M:%S")
+
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT datetime('now')")
+    print("SQLite now (UTC):", cursor.fetchone()[0])
+
+    cursor.execute("""
+        SELECT * FROM keystroke_summary
+        WHERE timestamp BETWEEN ? AND ?
+    """, (before_time, start_time))
+
+    rows = cursor.fetchall()
+
+    stress_values = [row[3] for row in rows]  # stress_percentage is the 4th column (index 3)
+    stress_array = np.array(stress_values, dtype=np.float32)
+
+    if len(stress_array) > 0:
+        mean_value = np.mean(stress_array)
+        print(len(stress_values))
+        mean_value = round(float(mean_value), 2)
+        conn.close()
+        return mean_value
+    else:
+        conn.close()
+        return "No data available"
+
+# CREATE RECOMMENDATION LOG TABLE
+def create_recommendations_log_table():
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS recommendations_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            recommendation_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            feedback INTEGER,
+            updated_at TEXT       
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+# SAVE RECOMMENDATION
+def insert_recommendation_log(recommendation_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    updated_at = created_at  # Initially, updated_at is the same as created_at
+    cursor.execute("""
+        INSERT INTO recommendations_log (recommendation_id, created_at, feedback, updated_at)
+        VALUES (?, ?, ?, ?)
+    """, (recommendation_id, created_at, None, updated_at))
+    conn.commit()
+    conn.close()
+
+# UPDATE RECOMMENDATION WITH USER FEEDBACK
+def update_recommendation_feedback(recommendation_id, feedback):
+    updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE recommendations_log
+        SET feedback = ?, updated_at = ?
+        WHERE recommendation_id = ?
+    """, (feedback, updated_at, recommendation_id))
+    conn.commit()
+    conn.close()

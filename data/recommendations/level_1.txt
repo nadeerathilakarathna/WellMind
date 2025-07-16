@@ -1,0 +1,25 @@
+RL01001: Take a deep breath and smile.
+RL01002: Blink slowly and rest your eyes.
+RL01003: Stretch your arms overhead.
+RL01004: Roll your shoulders gently.
+RL01005: Sit straight and adjust your posture.
+RL01006: Rest your palms on your lap.
+RL01007: Loosen your fingers and wrists.
+RL01008: Look away from the screen for 15 seconds.
+RL01009: Wiggle your toes gently.
+RL01010: Close your eyes for 10 seconds.
+RL01011: Take a slow sip of water.
+RL01012: Rotate your neck in small circles.
+RL01013: Stretch your hands toward the ceiling.
+RL01014: Place your feet flat on the floor.
+RL01015: Gently massage your temples.
+RL01016: Unclench your jaw.
+RL01017: Look at something green in your room.
+RL01018: Loosen your shoulders and drop them.
+RL01019: Smile intentionally.
+RL01020: Rest your hands and breathe slowly.
+RL01021: Tilt your head left and right gently.
+RL01022: Adjust your chair for comfort.
+RL01023: Check if you're slouching — correct it.
+RL01024: Place one hand on your stomach and breathe.
+RL01025: Gently close your eyes and count to five.

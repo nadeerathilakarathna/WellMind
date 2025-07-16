@@ -1,0 +1,25 @@
+RL04001: Take a 5-minute screen break.
+RL04002: Leave your desk and go to a new room.
+RL04003: Do a 5-minute body scan meditation.
+RL04004: Play a nature sounds playlist for 5 minutes.
+RL04005: Lie down in a quiet place briefly.
+RL04006: Drink a full glass of water slowly.
+RL04007: Watch a calming visualization video.
+RL04008: Use a mobile meditation timer for 5 minutes.
+RL04009: Sit silently and close your eyes.
+RL04010: Write 3 things you’re grateful for.
+RL04011: Contact a friend with a calm message.
+RL04012: Put on noise-canceling headphones.
+RL04013: Write down how you feel in 3 words.
+RL04014: Do a yoga breathing technique.
+RL04015: Use a calming desktop app (if installed).
+RL04016: Repeat a personal mantra aloud 5 times.
+RL04017: Clean up a small area of your desk.
+RL04018: Turn off all notifications for 10 minutes.
+RL04019: Put your phone away temporarily.
+RL04020: Move to a different sitting location.
+RL04021: Turn off screen and sit in total silence.
+RL04022: Stretch every part of your body gently.
+RL04023: Lay your head on your desk and rest.
+RL04024: Focus on your breath and count each one.
+RL04025: Do a visualization of a beach walk.

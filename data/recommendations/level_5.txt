@@ -1,0 +1,25 @@
+RL05001: Immediately step away from your workspace.
+RL05002: Take a 10-minute full break.
+RL05003: Leave the room and go outside if possible.
+RL05004: Do a full guided meditation session.
+RL05005: Contact a trusted friend or support person.
+RL05006: Close your laptop and sit in silence.
+RL05007: Lie down in a quiet, darkened room.
+RL05008: Turn off all devices temporarily.
+RL05009: Write freely in a journal for 5 minutes.
+RL05010: Play a 10-minute relaxing playlist.
+RL05011: Take a power nap if possible.
+RL05012: Watch a peaceful nature documentary.
+RL05013: Do a breathing exercise with music.
+RL05014: Use a stress-relief mobile app.
+RL05015: Do a 5-minute mindfulness routine.
+RL05016: Change clothes into something more comfortable.
+RL05017: Sit on the floor and relax your body entirely.
+RL05018: Turn off lights and close your eyes.
+RL05019: Do a gratitude or hope visualization.
+RL05020: Breathe in through your nose and sigh out loud.
+RL05021: Take a quick walk outside the house or room.
+RL05022: Sit with your pet or favorite object.
+RL05023: Use aromatherapy (if available).
+RL05024: Listen to a favorite song from childhood.
+RL05025: Talk to a close friend or family member.
