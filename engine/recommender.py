@@ -1,8 +1,9 @@
 import os
 import random
 from engine.tracker import has_been_shown, was_disliked
+from services.database import get_recommendations as get_recommendation_from_db
 
-RECOMMENDATION_DIR = "data/recommendations"
+# RECOMMENDATION_DIR = "data/recommendations"
 
 
 def get_level(score: int) -> int:
@@ -20,24 +21,24 @@ def get_level(score: int) -> int:
         raise ValueError("Score must be between 0 and 100.")
 
 
-def load_recommendations_for_level(level: int) -> list:
-    file_path = os.path.join(RECOMMENDATION_DIR, f"level_{level}.txt")
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Recommendation file for level {level} not found.")
+# def load_recommendations_for_level(level: int) -> list:
+#     file_path = os.path.join(RECOMMENDATION_DIR, f"level_{level}.txt")
+#     if not os.path.exists(file_path):
+#         raise FileNotFoundError(f"Recommendation file for level {level} not found.")
 
-    with open(file_path, "r", encoding="utf-8") as file:
-        raw = [line.strip() for line in file if line.strip()]
+#     with open(file_path, "r", encoding="utf-8") as file:
+#         raw = [line.strip() for line in file if line.strip()]
 
-    # Format: RL01001: Take a deep breath
-    recommendations = []
-    for line in raw:
-        if ':' in line:
-            rec_id, text = line.split(':', 1)
-            rec_id = rec_id.strip()
-            text = text.strip()
-            if not has_been_shown(rec_id) and not was_disliked(rec_id):
-                recommendations.append((rec_id, text))
-    return recommendations
+#     # Format: RL01001: Take a deep breath
+#     recommendations = []
+#     for line in raw:
+#         if ':' in line:
+#             rec_id, text = line.split(':', 1)
+#             rec_id = rec_id.strip()
+#             text = text.strip()
+#             if not has_been_shown(rec_id) and not was_disliked(rec_id):
+#                 recommendations.append((rec_id, text))
+#     return recommendations
 
 
 def get_recommendation(facial_value: int, keystroke_value: int) -> tuple:
@@ -45,8 +46,13 @@ def get_recommendation(facial_value: int, keystroke_value: int) -> tuple:
     level_keystroke = get_level(keystroke_value)
     final_level = level_facial if level_facial == level_keystroke else max(level_facial, level_keystroke)
 
-    recommendations = load_recommendations_for_level(final_level)
-    if not recommendations:
-        return None, "No new recommendations available."
+    return get_recommendation_from_db(final_level)
 
-    return random.choice(recommendations)
+
+
+
+    # recommendations = load_recommendations_for_level(final_level)
+    # if not recommendations:
+    #     return None, "No new recommendations available."
+
+    # return random.choice(recommendations)

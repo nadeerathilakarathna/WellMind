@@ -3,6 +3,8 @@ from datetime import datetime,timedelta
 import pandas as pd
 import os
 import numpy as np
+from recommendation.recommendation_list import recommendations
+import random
 
 # DATABASE CONNECTION
 DB_NAME = "databases/wellmind.db"
@@ -415,3 +417,78 @@ def update_recommendation_feedback(recommendation_id, feedback):
     """, (feedback, updated_at, recommendation_id))
     conn.commit()
     conn.close()
+
+
+def init_recommendations():
+    conn = create_connection()
+    cursor = conn.cursor()
+    table_name = 'recommendation'
+
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+    result = cursor.fetchone()
+
+    if result is None:
+        # print(f"Table '{table_name}' does NOT exist.")
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS recommendation (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                level INTEGER NOT NULL,
+                content TEXT NOT NULL,
+                score INTEGER NOT NULL      
+            )
+        """)
+        conn.commit()
+
+        cursor.executemany("INSERT INTO recommendation (level, content, score) VALUES (?, ?, ?)", [(level, item, 0) for level in recommendations for item in recommendations[level]])
+        conn.commit()
+    # else:
+    #     print(f"Table '{table_name}' exists.")
+    conn.commit()
+    conn.close()
+
+
+
+def get_recommendations(level=1):
+    init_recommendations()
+
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, content, score FROM recommendation WHERE level = ? AND score = 0", (level,))
+    row = cursor.fetchall()
+    if len(row) != 0:
+        random_row = random.choice(row)
+        conn.close()
+        # print("database:", random_row)
+        return random_row
+
+    else :
+        cursor.execute(
+        "SELECT id, content, score FROM recommendation WHERE level = ? ORDER BY score DESC LIMIT 10",(level,))
+        row = cursor.fetchall()
+        random_row = random.choice(row)
+        conn.close()
+        # print("database:", random_row)
+        return random_row
+
+
+    recommendations = cursor.fetchall()
+    conn.close()
+    return recommendations
+
+
+def set_recommendation_score(id, is_liked):
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT score FROM recommendation WHERE id = ?", (id,))
+    current_score = cursor.fetchone()[0]
+
+    if is_liked:
+        current_score += 1
+    else:
+        current_score -= 1
+
+    cursor.execute("UPDATE recommendation SET score = ? WHERE id = ?", (current_score, id))
+    conn.commit()
+    conn.close()
+

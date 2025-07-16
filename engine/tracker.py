@@ -2,7 +2,8 @@ from services.database import (
     create_connection,
     create_recommendations_log_table,
     insert_recommendation_log,
-    update_recommendation_feedback
+    update_recommendation_feedback,
+    set_recommendation_score
 )
 
 # ✅ Ensure the table is created at the beginning
@@ -49,5 +50,7 @@ def save_recommendation(rec_id):
 def update_feedback(rec_id, feedback):
     try:
         update_recommendation_feedback(rec_id, feedback)
+        set_recommendation_score(rec_id, bool(feedback))
+
     except Exception as e:
         print(f"[ERROR] update_feedback: {e}")

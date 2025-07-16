@@ -32,7 +32,7 @@ def show_notification():
         facial = parse_and_average_input("Enter facial analysis value(s) (50–100): ", "facial")
         keystroke = parse_and_average_input("Enter keystroke analysis value(s) (multiples of 10, 0–100): ", "keystroke")
 
-        rec_id, recommendation = get_recommendation(facial, keystroke)
+        rec_id, recommendation,score = get_recommendation(facial, keystroke)
 
         if rec_id is None:
             print(f"\n❌ {recommendation}")
