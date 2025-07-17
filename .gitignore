@@ -123,3 +123,8 @@ screenshots/
 old_developement/
 other_development/
 models/VIT/
+
+# Database files
+*.db
+*.sqlite3
+databases/
