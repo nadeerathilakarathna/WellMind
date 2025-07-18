@@ -9,6 +9,26 @@ import random
 # DATABASE CONNECTION
 DB_NAME = "databases/wellmind.db"
 
+database_path = os.path.dirname(DB_NAME)
+
+try:
+    # Check and create folder if not exists
+    if not os.path.exists(database_path):
+        os.makedirs(database_path)
+        print(f"Folder '{database_path}' created.")
+    # else:
+    #     print(f"Folder '{database_path}' already exists.")
+    
+    # Try connecting to the database
+    # conn = sqlite3.connect(DB_NAME)
+    # print("Database connected successfully.")
+    # conn.close()
+
+except Exception as e:
+    print("An error occurred:", e)
+
+
+
 def create_connection():
     return sqlite3.connect(DB_NAME)
 
@@ -300,8 +320,8 @@ def get_latest_facial_expression_data(duration=20, timestamp=datetime.now().strf
     cursor = conn.cursor()
 
 
-    cursor.execute("SELECT datetime('now')")
-    print("SQLite now (UTC):", cursor.fetchone()[0])
+    # cursor.execute("SELECT datetime('now')")
+    # print("SQLite now (UTC):", cursor.fetchone()[0])
 
     # start_time = '2025-07-15 17:04:00'
     # end_time = '2025-07-15 17:05:00'
@@ -318,7 +338,7 @@ def get_latest_facial_expression_data(duration=20, timestamp=datetime.now().strf
 
     if len(stress_array) > 0:
         mean_value = np.mean(stress_array)
-        print(len(stress_values))
+        # print(len(stress_values))
         mean_value = round(float(mean_value), 2)
 
         cursor.execute('''
@@ -340,40 +360,40 @@ def get_latest_facial_expression_data(duration=20, timestamp=datetime.now().strf
         return mean_value
     else:
         conn.close()
-        return "No data available"
+        return None
 
 # GET LATEST KEYSTROKE DATA
-def get_latest_keystroke_data(duration=20, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
-    start_time = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-    before_time = start_time - timedelta(minutes=duration)
-    start_time = datetime.strftime(start_time, "%Y-%m-%d %H:%M:%S")
-    before_time = datetime.strftime(before_time, "%Y-%m-%d %H:%M:%S")
+# def get_latest_keystroke_data(duration=20, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
+#     start_time = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+#     before_time = start_time - timedelta(minutes=duration)
+#     start_time = datetime.strftime(start_time, "%Y-%m-%d %H:%M:%S")
+#     before_time = datetime.strftime(before_time, "%Y-%m-%d %H:%M:%S")
 
-    conn = create_connection()
-    cursor = conn.cursor()
+#     conn = create_connection()
+#     cursor = conn.cursor()
 
-    cursor.execute("SELECT datetime('now')")
-    print("SQLite now (UTC):", cursor.fetchone()[0])
+#     cursor.execute("SELECT datetime('now')")
+#     print("SQLite now (UTC):", cursor.fetchone()[0])
 
-    cursor.execute("""
-        SELECT * FROM keystroke_summary
-        WHERE timestamp BETWEEN ? AND ?
-    """, (before_time, start_time))
+#     cursor.execute("""
+#         SELECT * FROM keystroke_summary
+#         WHERE timestamp BETWEEN ? AND ?
+#     """, (before_time, start_time))
 
-    rows = cursor.fetchall()
+#     rows = cursor.fetchall()
 
-    stress_values = [row[3] for row in rows]  # stress_percentage is the 4th column (index 3)
-    stress_array = np.array(stress_values, dtype=np.float32)
+#     stress_values = [row[3] for row in rows]  # stress_percentage is the 4th column (index 3)
+#     stress_array = np.array(stress_values, dtype=np.float32)
 
-    if len(stress_array) > 0:
-        mean_value = np.mean(stress_array)
-        print(len(stress_values))
-        mean_value = round(float(mean_value), 2)
-        conn.close()
-        return mean_value
-    else:
-        conn.close()
-        return "No data available"
+#     if len(stress_array) > 0:
+#         mean_value = np.mean(stress_array)
+#         print(len(stress_values))
+#         mean_value = round(float(mean_value), 2)
+#         conn.close()
+#         return mean_value
+#     else:
+#         conn.close()
+#         return "No data available"
 
 # CREATE RECOMMENDATION LOG TABLE
 def create_recommendations_log_table():
@@ -492,3 +512,72 @@ def set_recommendation_score(id, is_liked):
     conn.commit()
     conn.close()
 
+def get_latest_keystroke_data(duration=25, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    start_time = datetime.strptime(timestamp,"%Y-%m-%d %H:%M:%S")
+    before_time = start_time - timedelta(minutes=duration)
+    start_time = datetime.strftime(start_time,"%Y-%m-%d %H:%M:%S")
+    before_time = datetime.strftime(before_time,"%Y-%m-%d %H:%M:%S")
+
+    cursor.execute("""
+        SELECT * FROM keystroke_summary
+        WHERE timestamp BETWEEN ? AND ?
+        ORDER BY timestamp DESC
+        LIMIT 1
+    """, (before_time, start_time))
+
+
+    row = cursor.fetchone()
+    if row :
+        print(row)
+        return row[3] # Latest keystroke stress presentage in keystroke summary
+    else:
+        print("databse: No keystroke data found")
+        return None
+    conn.close()
+
+
+
+def store_realtime_stress(facial_expression_stress,keystroke_stress, stress_level, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS overall_stress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            facial_expression_stress REAL,
+            keystroke_stress REAL,
+            stress_level INTEGER NOT NULL
+        )
+    """)
+    conn.commit()
+
+    cursor.execute("""
+        INSERT INTO overall_stress (timestamp, facial_expression_stress, keystroke_stress, stress_level)
+        VALUES (?, ?, ?, ?)
+    """, (timestamp, facial_expression_stress, keystroke_stress, stress_level))
+    conn.commit()
+    conn.close()
+
+
+
+def log_error(error_message, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS error_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            error_message TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+
+    cursor.execute("""
+        INSERT INTO error_log (timestamp, error_message)
+        VALUES (?, ?)
+    """, (timestamp, error_message))
+    conn.commit()
+    conn.close()

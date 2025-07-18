@@ -4,6 +4,7 @@ from win32api import GetSystemMetrics
 import threading
 import time
 from widgets.avatar_overlay import AvatarOverlay
+import ctypes
 
 avatar_overlay_instance = None
 
