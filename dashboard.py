@@ -3,7 +3,7 @@ from screens.splash import SplashScreen
 from win32api import GetSystemMetrics
 import time
 import socket
-import ctypes
+# import ctypes
 
 from services.database import (
     create_user_table,
