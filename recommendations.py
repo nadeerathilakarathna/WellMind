@@ -31,6 +31,4 @@ def start_recommendation(facial_stress=None, keystroke_stress=None):
 if __name__ == "__main__":
     facial = float(input("Enter facial analysis value(s) (0–100): "))
     keystroke = float(input("Enter keystroke analysis value(s) (0–100): "))
-
     start_recommendation(facial,keystroke)
-
