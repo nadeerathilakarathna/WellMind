@@ -13,7 +13,7 @@ import multiprocessing
 from multiprocessing import Process, Manager
 from tensorflow.keras.models import load_model
 
-import services.database as db
+from services.database import store_facial_expression_data, Configuration
 
 
 def facial_expression_monitoring():
@@ -93,8 +93,9 @@ def facial_expression_monitoring():
 
         # Real-time detection loop
         last_capture = time.time()
+        configuration = Configuration()
         while True:
-            if db.monitoring_facial_expression() == False:
+            if configuration.facial_expression_is_running() == False:
                 cap.release()
                 continue
             else:
@@ -121,7 +122,7 @@ def facial_expression_monitoring():
                         stress_percentage = np.mean(stress_queue)
                         print(f"Stress Percentage: {stress_percentage:.2f}")
 
-                        db.store_facial_expression_data(round(float(stress_percentage)*100, 2))
+                        store_facial_expression_data(round(float(stress_percentage)*100, 2))
 
 
                         ### Store stress data in the database using user_id variable and current stress_presentage
@@ -138,6 +139,3 @@ def facial_expression_monitoring():
         cap.release()
         cv2.destroyAllWindows()
         # plot_process.terminate()
-
-
-#facial_expression_monitoring()

@@ -2,6 +2,7 @@ from engine.recommender import get_recommendation
 from engine.tracker import save_recommendation, update_feedback
 from utils.notification import show_modern_notification
 import time
+from services.database import Configuration
 
 def start_recommendation(facial_stress=None, keystroke_stress=None):
     rec_id, recommendation,score,level = get_recommendation(facial_stress, keystroke_stress)
@@ -17,8 +18,10 @@ def start_recommendation(facial_stress=None, keystroke_stress=None):
         def on_dislike():
             update_feedback(rec_id, 0)
             print("❌ You disliked the recommendation.")
-
-        show_modern_notification(rec_id, recommendation, on_like, on_dislike)
+        
+        configuration = Configuration()
+        if configuration.notifications_is_running():
+            show_modern_notification(rec_id, recommendation, on_like, on_dislike)
 
         print("🔔 Recommendation shown as notification.")
         time.sleep(20)  # wait so GUI stays visible

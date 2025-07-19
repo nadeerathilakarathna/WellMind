@@ -6,7 +6,7 @@ import joblib
 import sqlite3
 from datetime import datetime
 import pandas as pd
-
+from services.database import Configuration
 
 model = joblib.load('models/keystroke/random_forest_stress_model.joblib')
 
@@ -99,8 +99,12 @@ def predict_and_store():
     max_intervals = summary_window // interval_minutes
 
     predictions = []
+    configuration = Configuration()
     while True:
         time.sleep(interval_minutes * 60)
+
+        if not(configuration.keystroke_dynamics_is_running()):
+            continue
 
         features = calculate_features(duration_minutes=interval_minutes)
         total_keys = int((features[2] * (interval_minutes * 60)) / 60)

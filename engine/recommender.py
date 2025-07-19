@@ -8,17 +8,17 @@ import services.database as db
 def get_level(score):
     if score is None:
         return 0
-    elif 0 <= score <= 49:
+    elif 0 <= score <= 50:
         return 1
     elif 50 <= score <= 60:
         return 1
-    elif 61 <= score <= 70:
+    elif 60 <= score <= 70:
         return 2
-    elif 71 <= score <= 80:
+    elif 70 <= score <= 80:
         return 3
-    elif 81 <= score <= 90:
+    elif 80 <= score <= 90:
         return 4
-    elif 91 <= score <= 100:
+    elif 90 <= score <= 100:
         return 5
     else:
         print(f"Type: {type(score)}, Value: {score}")
