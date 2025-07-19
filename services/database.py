@@ -268,44 +268,46 @@ def store_facial_expression_data(stress_percentage):
     conn.commit()
     conn.close()
 
-# CAMERA ON AND OFF
-def monitoring_facial_expression(value=None):
-    conn = create_connection()
-    cursor = conn.cursor()
+# # CAMERA ON AND OFF
+# def monitoring_facial_expression(value=None):
+#     conn = create_connection()
+#     cursor = conn.cursor()
 
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS facial_expression_monitoring (
-            value BOOLEAN
-        )
-    ''')
+#     cursor.execute('''
+#         CREATE TABLE IF NOT EXISTS facial_expression_monitoring (
+#             value BOOLEAN
+#         )
+#     ''')
 
-    cursor.execute("SELECT COUNT(*) FROM facial_expression_monitoring")
-    row_count = cursor.fetchone()[0]
-    if row_count == 0:
-        cursor.execute("INSERT INTO facial_expression_monitoring (value) VALUES (?)", (True,))
-        conn.commit()
+#     cursor.execute("SELECT COUNT(*) FROM facial_expression_monitoring")
+#     row_count = cursor.fetchone()[0]
+#     if row_count == 0:
+#         cursor.execute("INSERT INTO facial_expression_monitoring (value) VALUES (?)", (True,))
+#         conn.commit()
 
-    if value is not None:
-        cursor.execute("UPDATE facial_expression_monitoring SET value = ?", (value,))
-        conn.commit()
-        conn.close()
-        return bool(value)
-    else:
-        cursor.execute("SELECT COUNT(*) FROM facial_expression_monitoring")
-        row_count = cursor.fetchone()[0]
+#     if value is not None:
+#         cursor.execute("UPDATE facial_expression_monitoring SET value = ?", (value,))
+#         conn.commit()
+#         conn.close()
+#         return bool(value)
+#     else:
+#         cursor.execute("SELECT COUNT(*) FROM facial_expression_monitoring")
+#         row_count = cursor.fetchone()[0]
 
         
 
-        if row_count == 0:
-            cursor.execute("INSERT INTO facial_expression_monitoring (value) VALUES (?)", (True,))
-            conn.commit()
-            conn.close()
-            return True
-        else:
-            cursor.execute("SELECT value FROM facial_expression_monitoring LIMIT 1")
-            result = cursor.fetchone()
-            conn.close()
-            return bool(result[0])
+#         if row_count == 0:
+#             cursor.execute("INSERT INTO facial_expression_monitoring (value) VALUES (?)", (True,))
+#             conn.commit()
+#             conn.close()
+#             return True
+#         else:
+#             cursor.execute("SELECT value FROM facial_expression_monitoring LIMIT 1")
+#             result = cursor.fetchone()
+#             conn.close()
+#             return bool(result[0])
+
+
 
 # GET LATEST FACIAL EXPRESSION DATA
 def get_latest_facial_expression_data(duration=20, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
@@ -362,38 +364,6 @@ def get_latest_facial_expression_data(duration=20, timestamp=datetime.now().strf
         conn.close()
         return None
 
-# GET LATEST KEYSTROKE DATA
-# def get_latest_keystroke_data(duration=20, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
-#     start_time = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-#     before_time = start_time - timedelta(minutes=duration)
-#     start_time = datetime.strftime(start_time, "%Y-%m-%d %H:%M:%S")
-#     before_time = datetime.strftime(before_time, "%Y-%m-%d %H:%M:%S")
-
-#     conn = create_connection()
-#     cursor = conn.cursor()
-
-#     cursor.execute("SELECT datetime('now')")
-#     print("SQLite now (UTC):", cursor.fetchone()[0])
-
-#     cursor.execute("""
-#         SELECT * FROM keystroke_summary
-#         WHERE timestamp BETWEEN ? AND ?
-#     """, (before_time, start_time))
-
-#     rows = cursor.fetchall()
-
-#     stress_values = [row[3] for row in rows]  # stress_percentage is the 4th column (index 3)
-#     stress_array = np.array(stress_values, dtype=np.float32)
-
-#     if len(stress_array) > 0:
-#         mean_value = np.mean(stress_array)
-#         print(len(stress_values))
-#         mean_value = round(float(mean_value), 2)
-#         conn.close()
-#         return mean_value
-#     else:
-#         conn.close()
-#         return "No data available"
 
 # CREATE RECOMMENDATION LOG TABLE
 def create_recommendations_log_table():
@@ -581,3 +551,164 @@ def log_error(error_message, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%
     """, (timestamp, error_message))
     conn.commit()
     conn.close()
+
+
+
+def get_avatar_status():
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS avatar_status (
+            value BOOLEAN
+        )
+    """)
+    conn.commit()
+
+    cursor.execute("""
+        SELECT value FROM avatar_status
+    """)
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return bool(row[0])
+    else:
+        return True
+
+
+
+class Configuration:
+    def __init__(self):
+        self.configurations = ["avatar_status", "facial_expression_monitoring", "keystroke_dynamics_monitoring", "notification_status"]
+        self.table_name = 'configurations'
+
+        def insert_configurations(configurations):
+            for self.config in configurations:
+                self.cursor.execute(f"SELECT COUNT(*) FROM {self.table_name} WHERE configuration = ?", (self.config,))
+                if self.cursor.fetchone()[0]==0:
+                    self.cursor.execute(f"INSERT INTO {self.table_name} (configuration, value) VALUES (?,?)", (self.config, 1))
+                    self.conn.commit()
+            self.conn.close()
+
+        
+
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{self.table_name}';")
+        self.result = self.cursor.fetchone()
+        if self.result:
+            insert_configurations(self.configurations)    
+
+        else:
+            self.cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {self.table_name} (
+                    configuration TEXT PRIMARY KEY,
+                    value INTEGER
+                )
+                """
+            )
+            self.conn.commit()
+
+            insert_configurations(self.configurations)
+            self.conn.close()
+
+    
+    def avatar_is_running(self):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"SELECT value FROM {self.table_name} WHERE configuration = 'avatar_status'")
+        row = self.cursor.fetchone()
+        self.conn.close()
+        if row:
+            return bool(row[0])
+        else:
+            return True
+    
+    def avatar_set_status(self, status):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"UPDATE {self.table_name} SET value = ? WHERE configuration = 'avatar_status'", (status,))
+        self.conn.commit()
+        self.conn.close()
+
+    def facial_expression_is_running(self):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"SELECT value FROM {self.table_name} WHERE configuration = 'facial_expression_monitoring'")
+        row = self.cursor.fetchone()
+        self.conn.close()
+        if row:
+            return bool(row[0])
+        else:
+            return True
+    
+    def facial_expression_set_status(self, status):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"UPDATE {self.table_name} SET value = ? WHERE configuration = 'facial_expression_monitoring'", (status,))
+        self.conn.commit()
+        self.conn.close()
+
+    def keystroke_dynamics_is_running(self):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"SELECT value FROM {self.table_name} WHERE configuration = 'keystroke_dynamics_monitoring'")
+        row = self.cursor.fetchone()
+        self.conn.close()
+        if row:
+            return bool(row[0])
+        else:
+            return True
+    
+    def keystroke_dynamics_set_status(self, status):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"UPDATE {self.table_name} SET value = ? WHERE configuration = 'keystroke_dynamics_monitoring'", (status,))
+        self.conn.commit()
+        self.conn.close()
+
+
+    def notifications_is_running(self):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"SELECT value FROM {self.table_name} WHERE configuration = 'notification_status'")
+        row = self.cursor.fetchone()
+        self.conn.close()
+        if row:
+            return bool(row[0])
+        else:
+            return True
+    
+    def notifications_set_status(self, status):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"UPDATE {self.table_name} SET value = ? WHERE configuration = 'notification_status'", (status,))
+        self.conn.commit()
+        self.conn.close()
+
+
+
+# configuration = Configuration()
+# print(configuration.avatar_is_running())
+# print(configuration.avatar_set_status(0))
+# print(configuration.avatar_is_running())
+
+# print(configuration.facial_expression_is_running())
+# print(configuration.facial_expression_set_status(0))
+# print(configuration.facial_expression_is_running())
+
+# print(configuration.keystroke_dynamics_is_running())
+# print(configuration.keystroke_dynamics_set_status(0))
+# print(configuration.keystroke_dynamics_is_running())
+
+# print(configuration.notifications_is_running())
+# print(configuration.notifications_set_status(0))
+# print(configuration.notifications_is_running())

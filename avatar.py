@@ -5,7 +5,7 @@ import threading
 import time
 from widgets.avatar_overlay import AvatarOverlay
 import ctypes
-
+from services.database import Configuration
 avatar_overlay_instance = None
 
 # Import Listeners
@@ -19,7 +19,7 @@ def launch_avatar_overlay():
     global avatar_overlay_instance
     time.sleep(1.0)
     avatar_overlay_instance = AvatarOverlay("assets/animations/default_avatar.png")
-    avatar_overlay_instance.mainloop()
+    avatar_overlay_instance.update()
 
 # Event handlers for usb plug and unplug
 def on_usb_change(event_type):
@@ -125,7 +125,24 @@ def run_avatar():
     threading.Thread(target=start_usb_listener, daemon=True).start()
     threading.Thread(target=start_power_listener, daemon=True).start()
     threading.Thread(target=start_internet_listener, daemon=True).start()
+    threading.Thread(target=avatar_runner, args=(root,), daemon=True).start()
 
     root.mainloop()  # Use root.mainloop() instead of avatar_overlay_instance.mainloop()
 
 
+def avatar_runner(root):
+    print("avatar_runner started")
+    configuration = Configuration()
+
+    while True:
+        if configuration.avatar_is_running():
+            try:
+                avatar_overlay_instance.deiconify()
+            except:
+                pass
+        else:
+            try:
+                avatar_overlay_instance.withdraw()
+            except:
+                pass
+        time.sleep(3)
