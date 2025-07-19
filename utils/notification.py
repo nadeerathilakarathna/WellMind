@@ -47,7 +47,7 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
 
         like_btn = tk.Button(
             btn_frame,
-            text=" Like",
+            text="👍🏻 Like",
             compound="left",
             font=("Segoe UI", 10, "bold"),
             bg="white",
@@ -61,7 +61,7 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
 
         dislike_btn = tk.Button(
             btn_frame,
-            text=" Unlike",
+            text="👎🏻 Unlike",
             compound="left",
             font=("Segoe UI", 10, "bold"),
             bg="white",
