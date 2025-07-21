@@ -45,11 +45,27 @@ class DashboardScreen(ctk.CTkFrame):
         self.scrollable_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         self.bind("<Configure>", self.on_frame_configure)
 
+        # Mouse wheel scroll binding
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)     # Windows/macOS
+        self.canvas.bind_all("<Button-4>", self._on_mousewheel)       # Linux scroll up
+        self.canvas.bind_all("<Button-5>", self._on_mousewheel)       # Linux scroll down
+
         self.build_ui()
 
     def on_frame_configure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         self.canvas.itemconfig(1, width=event.width)
+
+    def _on_mousewheel(self, event):
+        if os.name == 'nt':  # Windows
+            self.canvas.yview_scroll(-1 * (event.delta // 120), "units")
+        elif event.num == 4:  # Linux scroll up
+            self.canvas.yview_scroll(-1, "units")
+        elif event.num == 5:  # Linux scroll down
+            self.canvas.yview_scroll(1, "units")
+        else:
+            # macOS uses delta differently
+            self.canvas.yview_scroll(-1 * int(event.delta), "units")
 
     def build_ui(self):
         top_frame = ctk.CTkFrame(self.scrollable_frame, fg_color="transparent")
