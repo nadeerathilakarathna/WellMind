@@ -214,7 +214,7 @@ def create_recommendations_log_table():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS recommendations_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            recommendation_id TEXT NOT NULL,
+            recommendation_id INTEGER NOT NULL,
             created_at TEXT NOT NULL,
             feedback INTEGER,
             updated_at TEXT       
