@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from components.profile_popup import ProfilePopup
 from datetime import datetime
 from services.database import fetch_latest_user
+from services.database import fetch_recent_recommendations
 
 class DashboardScreen(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -188,33 +189,35 @@ class DashboardScreen(ctk.CTkFrame):
                      font=ctk.CTkFont("Poppins", 14, "bold"), text_color="#FFF", padx=8).pack(side="left")
 
         # Sample recommendation data
-        recommendations = [
-            {
-                "recommendation": "Take a 5-minute breathing break",
-                "timestamp": "2025-06-15 08:45:12",
-                "reaction": "liked",
-            },
-            {
-                "recommendation": "Listen to classical music",
-                "timestamp": "2025-06-15 08:30:34",
-                "reaction": "liked",
-            },
-            {
-                "recommendation": "Drink a glass of water",
-                "timestamp": "2025-06-15 07:15:12",
-                "reaction": "unliked",
-            },
-            {
-                "recommendation": "Stretch your arms and legs",
-                "timestamp": "2025-06-15 09:10:45",
-                "reaction": "liked",
-            },
-            {
-                "recommendation": "Take a short walk outside",
-                "timestamp": "2025-06-15 09:35:00",
-                "reaction": "liked",
-            }
-        ]
+        # recommendations = [
+        #     {
+        #         "recommendation": "Take a 5-minute breathing break",
+        #         "timestamp": "2025-06-15 08:45:12",
+        #         "reaction": "liked",
+        #     },
+        #     {
+        #         "recommendation": "Listen to classical music",
+        #         "timestamp": "2025-06-15 08:30:34",
+        #         "reaction": "liked",
+        #     },
+        #     {
+        #         "recommendation": "Drink a glass of water",
+        #         "timestamp": "2025-06-15 07:15:12",
+        #         "reaction": "unliked",
+        #     },
+        #     {
+        #         "recommendation": "Stretch your arms and legs",
+        #         "timestamp": "2025-06-15 09:10:45",
+        #         "reaction": "liked",
+        #     },
+        #     {
+        #         "recommendation": "Take a short walk outside",
+        #         "timestamp": "2025-06-15 09:35:00",
+        #         "reaction": "liked",
+        #     }
+        # ]
+
+        recommendations = fetch_recent_recommendations()
 
         now = datetime.now()
 
@@ -252,7 +255,7 @@ class DashboardScreen(ctk.CTkFrame):
                     hours = int(time_diff // 3600)
                     time_display = f"{hours} hour{'s' if hours != 1 else ''} ago"
                 else:
-                    time_display = feedback_datetime.strftime("%b %d, %Y")
+                    time_display = feedback_datetime.strftime("%b %d, %Y | %I:%M %p")
 
                 feedback_icon = thumb_up_ctk if reaction == "liked" else thumb_down_ctk
                 feedback_text = "Liked" if reaction == "liked" else "Unliked"

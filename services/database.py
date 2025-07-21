@@ -27,8 +27,6 @@ try:
 except Exception as e:
     print("An error occurred:", e)
 
-
-
 def create_connection():
     return sqlite3.connect(DB_NAME)
 
@@ -418,8 +416,6 @@ def get_avatar_status():
     else:
         return True
 
-
-
 class Configuration:
     def __init__(self):
         self.configurations = ["avatar_status", "facial_expression_monitoring", "keystroke_dynamics_monitoring", "notification_status"]
@@ -537,6 +533,45 @@ class Configuration:
         self.cursor.execute(f"UPDATE {self.table_name} SET value = ? WHERE configuration = 'notification_status'", (status,))
         self.conn.commit()
         self.conn.close()
+
+# Dashboard visualizations
+def fetch_recent_recommendations(limit=5):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT 
+                rl.id, 
+                rl.recommendation_id, 
+                rl.created_at, 
+                rl.feedback,
+                r.content
+            FROM recommendations_log rl
+            JOIN recommendation r ON rl.recommendation_id = r.id
+            WHERE rl.feedback IS NOT NULL
+            ORDER BY datetime(rl.created_at) DESC
+            LIMIT ?
+        """, (limit,))
+        rows = cursor.fetchall()
+
+        recommendations = []
+        for row in rows:
+            rec_id, rec_code, timestamp, feedback, content = row
+            recommendations.append({
+                "id": rec_id,
+                "recommendation": content,  # Now showing content instead of rec_code
+                "timestamp": timestamp,
+                "reaction": "liked" if feedback == 1 else "unliked"
+            })
+
+        return recommendations
+    except Exception as e:
+        print("Error fetching recommendations:", e)
+        return []
+    finally:
+        conn.close()
+
 
 
 
