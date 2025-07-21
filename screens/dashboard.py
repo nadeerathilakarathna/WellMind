@@ -138,10 +138,7 @@ class DashboardScreen(ctk.CTkFrame):
         avatar_label.bind("<Button-1>", lambda event: self.open_profile_popup())
 
         # Page header
-        ctk.CTkLabel(self.scrollable_frame, text="Dashboard", font=ctk.CTkFont("Poppins", 22, "bold")).pack(anchor="w",
-                                                                                                            padx=25,
-                                                                                                            pady=(
-                                                                                                            10, 0))
+        ctk.CTkLabel(self.scrollable_frame, text="Dashboard", font=ctk.CTkFont("Poppins", 22, "bold")).pack(anchor="w",padx=25,pady=(10, 0))
 
         # Greeting
         greeting = self.get_greeting()
@@ -302,9 +299,18 @@ class DashboardScreen(ctk.CTkFrame):
                 else:
                     time_display = feedback_datetime.strftime("%b %d, %Y | %I:%M %p")
 
-                feedback_icon = thumb_up_ctk if reaction == "liked" else thumb_down_ctk
-                feedback_text = "Liked" if reaction == "liked" else "Unliked"
-                feedback_color = "#1B5E20" if reaction == "liked" else "#B71C1C"
+                if reaction == "liked":
+                    feedback_icon = thumb_up_ctk
+                    feedback_text = "Like"
+                    feedback_color = "#1B5E20"
+                elif reaction == "unliked":
+                    feedback_icon = thumb_down_ctk
+                    feedback_text = "Unlike"
+                    feedback_color = "#B71C1C"
+                else:
+                    feedback_icon = None
+                    feedback_text = "--"
+                    feedback_color = "#888888"
 
                 card = ctk.CTkFrame(rec_section, fg_color="#FFFFFF", corner_radius=10)
                 card.pack(padx=10, pady=5, fill="x")

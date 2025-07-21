@@ -619,6 +619,7 @@ def get_feedback_counts():
     finally:
         conn.close()
 
+
 def fetch_recent_recommendations(limit=5):
     conn = create_connection()
     cursor = conn.cursor()
@@ -633,31 +634,39 @@ def fetch_recent_recommendations(limit=5):
                 r.content
             FROM recommendations_log rl
             JOIN recommendation r ON rl.recommendation_id = r.id
-            WHERE rl.feedback IS NOT NULL
             ORDER BY datetime(rl.created_at) DESC
             LIMIT ?
         """, (limit,))
+
         rows = cursor.fetchall()
 
         recommendations = []
         for row in rows:
-            rec_id, rec_code, timestamp, feedback, content = row
+            log_id, rec_id, created_at, feedback, content = row
+
+            # Convert feedback: 1 = liked, 0 = unliked
+            if feedback == 1:
+                reaction = "liked"
+            elif feedback == 0:
+                reaction = "unliked"
+            else:
+                reaction = "unknown"  # This should not happen due to IS NOT NULL
+
             recommendations.append({
-                "id": rec_id,
-                "recommendation": content,  # Now showing content instead of rec_code
-                "timestamp": timestamp,
-                "reaction": "liked" if feedback == 1 else "unliked"
+                "id": log_id,
+                "recommendation": content,
+                "timestamp": created_at,
+                "reaction": reaction
             })
 
         return recommendations
+
     except Exception as e:
         print("Error fetching recommendations:", e)
         return []
+
     finally:
         conn.close()
-
-
-
 
 # configuration = Configuration()
 # print(configuration.avatar_is_running())
