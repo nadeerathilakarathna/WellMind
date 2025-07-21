@@ -693,22 +693,3 @@ class Configuration:
         self.cursor.execute(f"UPDATE {self.table_name} SET value = ? WHERE configuration = 'notification_status'", (status,))
         self.conn.commit()
         self.conn.close()
-
-
-
-# configuration = Configuration()
-# print(configuration.avatar_is_running())
-# print(configuration.avatar_set_status(0))
-# print(configuration.avatar_is_running())
-
-# print(configuration.facial_expression_is_running())
-# print(configuration.facial_expression_set_status(0))
-# print(configuration.facial_expression_is_running())
-
-# print(configuration.keystroke_dynamics_is_running())
-# print(configuration.keystroke_dynamics_set_status(0))
-# print(configuration.keystroke_dynamics_is_running())
-
-# print(configuration.notifications_is_running())
-# print(configuration.notifications_set_status(0))
-# print(configuration.notifications_is_running())
