@@ -535,8 +535,6 @@ class Configuration:
         self.conn.close()
 
 # Dashboard visualizations
-from datetime import datetime
-
 def get_stress_metrics():
     conn = create_connection()
     cursor = conn.cursor()
@@ -599,9 +597,6 @@ def get_stress_metrics():
         "Average Stress": f"{avg_stress:.2f}%" if avg_stress is not None else "No data",
         "Peak Stress": f"{peak_stress:.2f}%" if peak_stress is not None else "No data"
     }
-
-
-
 
 def get_feedback_counts():
     conn = create_connection()
