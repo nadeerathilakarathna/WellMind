@@ -535,6 +535,95 @@ class Configuration:
         self.conn.close()
 
 # Dashboard visualizations
+from datetime import datetime
+
+def get_stress_metrics():
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    # 1. Get the latest stress record
+    cursor.execute("""
+        SELECT facial_expression_stress, keystroke_stress 
+        FROM overall_stress 
+        ORDER BY id DESC LIMIT 1
+    """)
+    result = cursor.fetchone()
+
+    facial_stress = keystroke_stress = current_stress = None
+    if result:
+        facial_stress = float(result[0])
+        keystroke_stress = float(result[1])
+        current_stress = round((facial_stress + keystroke_stress) / 2, 2)
+
+    # 2. Get today's date string
+    today_str = datetime.now().date().isoformat()
+
+    # 3. Fetch today's records
+    cursor.execute("""
+        SELECT facial_expression_stress, keystroke_stress 
+        FROM overall_stress
+        WHERE DATE(timestamp) = DATE(?)
+    """, (today_str,))
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    # 4. Calculate average and peak stress
+    avg_stress = None
+    peak_stress = None
+
+    if rows:
+        total_stress = 0
+        max_stress = 0
+
+        for row in rows:
+            try:
+                facial = float(row[0])
+                keystroke = float(row[1])
+                stress_level = (facial + keystroke) / 2
+                total_stress += stress_level
+
+                if stress_level > max_stress:
+                    max_stress = stress_level
+            except (TypeError, ValueError):
+                continue
+
+        count = len(rows)
+        if count > 0:
+            avg_stress = round(total_stress / count, 2)
+            peak_stress = round(max_stress, 2)
+
+    # 5. Return dictionary with all metrics
+    return {
+        "Current Stress": f"{current_stress:.2f}%" if current_stress is not None else "No data",
+        "Average Stress": f"{avg_stress:.2f}%" if avg_stress is not None else "No data",
+        "Peak Stress": f"{peak_stress:.2f}%" if peak_stress is not None else "No data"
+    }
+
+
+
+
+def get_feedback_counts():
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT 
+                SUM(CASE WHEN feedback = 1 THEN 1 ELSE 0 END) AS likes,
+                SUM(CASE WHEN feedback = 0 THEN 1 ELSE 0 END) AS unlikes
+            FROM recommendations_log
+            WHERE feedback IS NOT NULL
+        """)
+        result = cursor.fetchone()
+        likes, unlikes = result if result else (0, 0)
+        return {"likes": likes or 0, "unlikes": unlikes or 0}
+    except Exception as e:
+        print("Error fetching feedback counts:", e)
+        return {"likes": 0, "unlikes": 0}
+    finally:
+        conn.close()
+
 def fetch_recent_recommendations(limit=5):
     conn = create_connection()
     cursor = conn.cursor()

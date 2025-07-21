@@ -7,7 +7,8 @@ from components.profile_popup import ProfilePopup
 from datetime import datetime
 from services.database import fetch_latest_user
 from services.database import fetch_recent_recommendations
-
+from services.database import get_feedback_counts
+from services.database import get_stress_metrics
 
 class DashboardScreen(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -162,16 +163,18 @@ class DashboardScreen(ctk.CTkFrame):
         card_frame = ctk.CTkFrame(self.scrollable_frame, fg_color="#333333", corner_radius=12)
         card_frame.pack(fill=ctk.X, padx=25, pady=(0, 10))
 
-        for title, value in [
-            ("Current Stress", "68%"),
-            ("Average Stress", "54%"),
-            ("Peak Stress", "85% (Thursday, 2:45 PM)"),
-        ]:
-            card = ctk.CTkFrame(card_frame, corner_radius=12, width=140, height=100, fg_color="#E3F2FD")
-            card.pack(side="left", padx=10, pady=10, fill="both", expand=True)
-            ctk.CTkLabel(card, text=title, font=ctk.CTkFont("Poppins", 12, "bold"), text_color="#000").pack(
-                pady=(10, 0))
-            ctk.CTkLabel(card, text=value, font=ctk.CTkFont("Poppins", 14), text_color="#254D70").pack(pady=(0, 10))
+        metrics = get_stress_metrics()
+
+        if metrics:
+            for title, value in metrics.items():
+                card = ctk.CTkFrame(card_frame, corner_radius=12, width=140, height=100, fg_color="#E3F2FD")
+                card.pack(side="left", padx=10, pady=10, fill="both", expand=True)
+                ctk.CTkLabel(card, text=title, font=ctk.CTkFont("Poppins", 12, "bold"), text_color="#000").pack(
+                    pady=(10, 0))
+                ctk.CTkLabel(card, text=value, font=ctk.CTkFont("Poppins", 14), text_color="#254D70").pack(pady=(0, 10))
+        else:
+            # Optional fallback if metrics not found
+            ctk.CTkLabel(card_frame, text="No stress metrics available", font=ctk.CTkFont("Poppins", 14)).pack(pady=20)
 
         # Feedback Card with icons
         feedback_card = ctk.CTkFrame(card_frame, corner_radius=12, width=140, height=100, fg_color="#E3F2FD")
@@ -182,19 +185,24 @@ class DashboardScreen(ctk.CTkFrame):
         feedback_icon_frame = ctk.CTkFrame(feedback_card, fg_color="transparent")
         feedback_icon_frame.pack(pady=(0, 10))
 
+        # Fetch feedback counts from DB
+        feedback_counts = get_feedback_counts()
+        likes = feedback_counts["likes"]
+        unlikes = feedback_counts["unlikes"]
+
         # Like count
         like_frame = ctk.CTkFrame(feedback_icon_frame, fg_color="transparent")
         like_frame.pack(side="left", padx=(0, 15))
         ctk.CTkLabel(like_frame, image=thumb_up_ctk, text="", width=16, height=16).pack(side="left")
-        ctk.CTkLabel(like_frame, text="4", font=ctk.CTkFont("Poppins", 12), text_color="#254D70", padx=6).pack(
+        ctk.CTkLabel(like_frame, text=str(likes), font=ctk.CTkFont("Poppins", 12), text_color="#254D70", padx=6).pack(
             side="left")
 
         # Unlike count
         unlike_frame = ctk.CTkFrame(feedback_icon_frame, fg_color="transparent")
         unlike_frame.pack(side="left")
         ctk.CTkLabel(unlike_frame, image=thumb_down_ctk, text="", width=16, height=16).pack(side="left")
-        ctk.CTkLabel(unlike_frame, text="1", font=ctk.CTkFont("Poppins", 12), text_color="#254D70", padx=6).pack(
-            side="left")
+        ctk.CTkLabel(unlike_frame, text=str(unlikes), font=ctk.CTkFont("Poppins", 12), text_color="#254D70",
+                     padx=6).pack(side="left")
 
         # Stress Summary Graph
         graph_card = ctk.CTkFrame(self.scrollable_frame, fg_color="#333333", corner_radius=12)
