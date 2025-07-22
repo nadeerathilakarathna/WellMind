@@ -9,6 +9,7 @@ from services.database import fetch_latest_user
 from services.database import fetch_recent_recommendations
 from services.database import get_feedback_counts
 from services.database import get_stress_metrics
+from services.database import fetch_user_dashboard
 
 class DashboardScreen(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -77,39 +78,130 @@ class DashboardScreen(ctk.CTkFrame):
         # For now, we'll just print the selection
         self.update_stress_graph(selected_period)
 
-    def update_stress_graph(self, period):
+    def update_stress_graph(self, selected_period):
         """Update the stress graph based on selected time period"""
-        # Sample data for different time periods
-        data_sets = {
-            "Today": {
-                "labels": ["6AM", "9AM", "12PM", "3PM", "6PM"],
-                "values": [45, 60, 70, 85, 55]
-            },
-            "This week": {
-                "labels": ["Mon", "Tue", "Wed", "Thu", "Fri"],
-                "values": [60, 70, 65, 80, 55]
-            },
-            "This month": {
-                "labels": ["Week 1", "Week 2", "Week 3", "Week 4"],
-                "values": [62, 68, 72, 66]
-            }
-        }
+        self.selected_period = selected_period
+
+        if self.selected_period == "Today":
+            self.data = fetch_user_dashboard('daily')
+        elif self.selected_period == "This week":
+            self.data = fetch_user_dashboard('weekly')
+        elif self.selected_period == "This month":
+            self.data = fetch_user_dashboard('monthly')
 
         # Clear the existing graph and create new one
         if hasattr(self, 'chart'):
             self.chart.get_tk_widget().destroy()
 
         fig, ax = plt.subplots(figsize=(6, 2.5))
-        data = data_sets.get(period, data_sets["This week"])
-        ax.plot(data["labels"], data["values"], marker="o", color="#3F51B5")
-        ax.set_ylabel("% Stress")
+        
+        if self.data['rows']:
+            rows = self.data['rows']
+            
+            # Extract data from rows (assuming row structure: [id, timestamp, facial_expression_stress, keystroke_stress, stress_level, overall])
+            timestamps = []
+            facial_expression_stresses = []
+            keystroke_stresses = []
+            overall_stresses = []
+            
+            for row in rows:
+                timestamps.append(row[1])  # timestamp
+                facial_expression_stresses.append(row[2] if row[2] is not None else None)  # facial expression stress
+                keystroke_stresses.append(row[3] if row[3] is not None else None)  # keystroke stress
+                overall_stresses.append(row[5] if row[5] is not None else None)  # overall stress
+            
+            if timestamps:
+                # Convert timestamps to datetime objects for plotting
+                from datetime import datetime
+                datetime_objects = [datetime.strptime(ts, "%Y-%m-%d %H:%M:%S") for ts in timestamps]
+                
+                # Sort all data by timestamp to ensure proper line plotting
+                # Handle None values by replacing them with a placeholder for sorting, then restore
+                data_tuples = list(zip(datetime_objects, facial_expression_stresses, keystroke_stresses, overall_stresses))
+                sorted_data = sorted(data_tuples, key=lambda x: x[0])  # Sort only by datetime (first element)
+                datetime_objects, facial_expression_stresses, keystroke_stresses, overall_stresses = zip(*sorted_data)
+                
+                # Plot facial expression stress data
+                facial_valid_data = [(dt, stress) for dt, stress in zip(datetime_objects, facial_expression_stresses) if stress is not None]
+                if facial_valid_data:
+                    facial_times, facial_values = zip(*facial_valid_data)
+                    ax.plot(facial_times, facial_values, marker="o", color="#FF5722", 
+                        linewidth=1, markersize=3, label="Facial Expression Stress", alpha=0.5, 
+                        linestyle='-', drawstyle='default')
+                
+                # Plot keystroke stress data
+                keystroke_valid_data = [(dt, stress) for dt, stress in zip(datetime_objects, keystroke_stresses) if stress is not None]
+                if keystroke_valid_data:
+                    keystroke_times, keystroke_values = zip(*keystroke_valid_data)
+                    ax.plot(keystroke_times, keystroke_values, marker="o", color="#4CAF50", 
+                        linewidth=1, markersize=3, label="Keystroke Stress", alpha=0.5, 
+                        linestyle='-', drawstyle='default')
+                
+                # Plot overall stress data
+                overall_valid_data = [(dt, stress) for dt, stress in zip(datetime_objects, overall_stresses) if stress is not None]
+                if overall_valid_data:
+                    overall_times, overall_values = zip(*overall_valid_data)
+                    ax.plot(overall_times, overall_values, marker="o", color="#3F51B5", 
+                        linewidth=3, markersize=6, label="Overall Stress", 
+                        linestyle='-', drawstyle='default')
+                
+                # Get date range from data info
+                point_date_str = self.data['info']['point_date']
+                before_date_str = self.data['info']['before_date']
+                point_date_dt = datetime.strptime(point_date_str, "%Y-%m-%d %H:%M:%S")
+                before_date_dt = datetime.strptime(before_date_str, "%Y-%m-%d %H:%M:%S")
+                
+                # Set x-axis limits to the actual date range
+                ax.set_xlim(before_date_dt, point_date_dt)
+                
+                # Format x-axis based on the selected period
+                if self.selected_period == "Today":
+                    ax.xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter("%H:%M"))
+                    ax.xaxis.set_major_locator(plt.matplotlib.dates.HourLocator(interval=2))
+                elif self.selected_period == "This week":
+                    ax.xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter("%a %d"))
+                    ax.xaxis.set_major_locator(plt.matplotlib.dates.DayLocator())
+                elif self.selected_period == "This month":
+                    ax.xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter("%m/%d"))
+                    ax.xaxis.set_major_locator(plt.matplotlib.dates.WeekdayLocator())
+                
+                # Rotate x-axis labels for better readability
+                plt.xticks(rotation=45)
+                
+                # Add legend to distinguish between different stress types
+                ax.legend(loc='upper right', fontsize=8)
+                
+
+            else:
+                # No data available - show empty graph with message
+                ax.text(0.5, 0.5, 'No data available for this period', 
+                    horizontalalignment='center', verticalalignment='center', 
+                    transform=ax.transAxes, fontsize=12, color='gray')
+        else:
+            # No data available - show empty graph with message
+            ax.text(0.5, 0.5, 'No data available for this period', 
+                horizontalalignment='center', verticalalignment='center', 
+                transform=ax.transAxes, fontsize=12, color='gray')
+        
+        ax.set_ylabel("Stress Level")
         ax.set_ylim(0, 100)
         ax.grid(True)
-        ax.set_title(f"Stress Level - {period}")
-
+        ax.set_title(f"Stress Level - {selected_period}")
+        
+        # Adjust layout to prevent label cutoff
+        plt.tight_layout()
+        
         self.chart = FigureCanvasTkAgg(fig, master=self.graph_frame)
         self.chart.draw()
         self.chart.get_tk_widget().pack(fill=ctk.BOTH, expand=True)
+
+
+
+
+
+
+
+
 
     def build_ui(self):
         top_frame = ctk.CTkFrame(self.scrollable_frame, fg_color="transparent")
