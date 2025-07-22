@@ -351,7 +351,7 @@ def get_latest_keystroke_data(duration=25, timestamp=datetime.now().strftime("%Y
     conn.close()
 
 
-
+    
 def store_realtime_stress(facial_expression_stress,keystroke_stress, stress_level, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
     conn = create_connection()
     cursor = conn.cursor()
@@ -668,6 +668,76 @@ def fetch_recent_recommendations(limit=5):
     finally:
         conn.close()
 
+def fetch_user_dashboard(option='daily',date=None):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+
+    if date is None:
+            date = datetime.now().strftime("%Y-%m-%d")
+            # date = datetime.strptime(date, "%Y-%m-%d") + timedelta(days=-1)
+            # date = date.strftime("%Y-%m-%d")
+
+    if option == 'daily':
+        point_date = date + ' 23:59:59'
+        before_date = date + ' 00:00:00'
+    if option == 'weekly':
+        point_date = datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d") + ' 23:59:59'
+        before_date = datetime.strptime(date, "%Y-%m-%d") + timedelta(days=-7)
+        before_date = before_date.strftime("%Y-%m-%d") + ' 00:00:00'
+    if option == 'monthly':
+        point_date = datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d") + ' 23:59:59'
+        before_date = datetime.strptime(date, "%Y-%m-%d") + timedelta(days=-30)
+        before_date = before_date.strftime("%Y-%m-%d") + ' 00:00:00'
+    if option == 'yearly':
+        point_date = datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d") + ' 23:59:59'
+        before_date = datetime.strptime(date, "%Y-%m-%d") + timedelta(days=-365)
+        before_date = before_date.strftime("%Y-%m-%d") + ' 00:00:00'
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS overall_stress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            facial_expression_stress REAL,
+            keystroke_stress REAL,
+            stress_level INTEGER NOT NULL
+        )
+    """)
+    conn.commit()
+
+    cursor.execute("""
+    SELECT *,
+           CASE
+               WHEN facial_expression_stress = 0 OR keystroke_stress = 0 THEN
+                   facial_expression_stress + keystroke_stress
+               ELSE
+                   (facial_expression_stress + keystroke_stress) / 2
+            END AS overall
+        FROM overall_stress
+        WHERE timestamp BETWEEN ? AND ?
+    """, (before_date, point_date))
+
+    # print(f'point date: {point_date}')
+    # print(f'before date: {before_date}')
+
+    rows = cursor.fetchall()
+
+    data = {
+        'info': {
+            'option': option,
+            'point_date': point_date,
+            'before_date': before_date,
+        },
+        'rows': rows
+    }
+
+    conn.close()
+    return data
+
+# rows =fetch_user_dashboard('yearly')
+
+
+
 # configuration = Configuration()
 # print(configuration.avatar_is_running())
 # print(configuration.avatar_set_status(0))
@@ -684,3 +754,6 @@ def fetch_recent_recommendations(limit=5):
 # print(configuration.notifications_is_running())
 # print(configuration.notifications_set_status(0))
 # print(configuration.notifications_is_running())
+
+
+
