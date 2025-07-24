@@ -27,8 +27,6 @@ try:
 except Exception as e:
     print("An error occurred:", e)
 
-
-
 def create_connection():
     return sqlite3.connect(DB_NAME)
 
@@ -84,167 +82,11 @@ def delete_user(user_id):
     conn = create_connection()
     cursor = conn.cursor()
 
-    # Optional: delete user preferences first for referential integrity
-    cursor.execute("DELETE FROM user_preferences_mapping WHERE user_id = ?", (user_id,))
-
     # Then delete user
     cursor.execute("DELETE FROM user WHERE user_id = ?", (user_id,))
 
     conn.commit()
     conn.close()
-
-# CREATE PREFERENCES CATEGORY AND PREFERENCES TABLE
-# def create_preferences_tables():
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS preferences_category (
-            category_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            category_name TEXT UNIQUE,
-            created_at TEXT
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS preferences (
-            preference_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            preference_name TEXT,
-            category_id INTEGER,
-            created_at TEXT,
-            FOREIGN KEY (category_id) REFERENCES preferences_category (category_id)
-        )
-    """)
-    conn.commit()
-    conn.close()
-
-# IMPORT DATA TO THE PREFERENCES TABLE
-# def import_preferences_from_excel(excel_path="assets/documents/preferences.xlsx"):
-    if not os.path.exists(excel_path):
-        print(f"File not found: {excel_path}")
-        return
-
-    df = pd.read_excel(excel_path)
-
-    conn = create_connection()
-    cursor = conn.cursor()
-
-    # --- Delete existing data ---
-    cursor.execute("DELETE FROM preferences")
-    cursor.execute("DELETE FROM preferences_category")
-    conn.commit()
-
-    # --- Prepare for inserting new data ---
-    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    category_map = {}
-
-    for _, row in df.iterrows():
-        preference_name = row['Preference Name']
-        category_name = row['Category']
-
-        # Insert category if not already inserted
-        if category_name not in category_map:
-            cursor.execute("SELECT category_id FROM preferences_category WHERE category_name = ?", (category_name,))
-            category = cursor.fetchone()
-            if category:
-                category_id = category[0]
-            else:
-                cursor.execute(
-                    "INSERT INTO preferences_category (category_name, created_at) VALUES (?, ?)",
-                    (category_name, created_at)
-                )
-                category_id = cursor.lastrowid
-            category_map[category_name] = category_id
-        else:
-            category_id = category_map[category_name]
-
-        # Insert preference
-        cursor.execute("""
-            INSERT INTO preferences (preference_name, category_id, created_at)
-            VALUES (?, ?, ?)
-        """, (preference_name, category_id, created_at))
-
-    conn.commit()
-    conn.close()
-
-# CREATE USER PREFERENCES MAPPING TABLE
-# def create_user_preferences_mapping_table():
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS user_preferences_mapping (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            preference_id INTEGER,
-            created_at TEXT,
-            FOREIGN KEY (user_id) REFERENCES user(user_id),
-            FOREIGN KEY (preference_id) REFERENCES preferences(preference_id)
-        )
-    """)
-    conn.commit()
-    conn.close()
-
-# FETCH PREFERENCE CATEGORIES SQL QUERY
-# def get_all_categories():
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT category_id, category_name FROM preferences_category ORDER BY category_name")
-    categories = cursor.fetchall()
-    conn.close()
-    return categories
-
-# FETCH CATEGORY WISE PREFERENCES SQL QUERY
-# def get_preferences_by_category(category_id):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT preference_id, preference_name FROM preferences 
-        WHERE category_id = ? ORDER BY preference_name
-    """, (category_id,))
-    preferences = cursor.fetchall()
-    conn.close()
-    return preferences
-
-# FETCH PREFERENCES WITH ID
-# def get_preference_id_by_name(name):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT preference_id FROM preferences WHERE preference_name = ?", (name,))
-    result = cursor.fetchone()
-    conn.close()
-    return result[0] if result else None
-
-# SAVE USER SELECTED PREFERENCES ON THE DATABASE
-# def insert_user_preference_mapping(user_id, preference_id):
-    conn = create_connection()
-    cursor = conn.cursor()
-    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cursor.execute("""
-        INSERT INTO user_preferences_mapping (user_id, preference_id, created_at)
-        VALUES (?, ?, ?)
-    """, (user_id, preference_id, created_at))
-    conn.commit()
-    conn.close()
-
-# FETCH USER PREFERENCES LIST
-# def get_user_preferences_by_user_id(user_id):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT pc.category_name, p.preference_name
-        FROM user_preferences_mapping upm
-        JOIN preferences p ON upm.preference_id = p.preference_id
-        JOIN preferences_category pc ON p.category_id = pc.category_id
-        WHERE upm.user_id = ?
-        ORDER BY pc.category_name, p.preference_name
-    """, (user_id,))
-    rows = cursor.fetchall()
-    conn.close()
-
-    result = {}
-    for category_name, preference_name in rows:
-        if category_name not in result:
-            result[category_name] = []
-        result[category_name].append(preference_name)
-    return result
 
 # STORAGE FOR FACIAL EXPRESSION DATA
 def store_facial_expression_data(stress_percentage):
@@ -372,7 +214,7 @@ def create_recommendations_log_table():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS recommendations_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            recommendation_id TEXT NOT NULL,
+            recommendation_id INTEGER NOT NULL,
             created_at TEXT NOT NULL,
             feedback INTEGER,
             updated_at TEXT       
@@ -509,7 +351,7 @@ def get_latest_keystroke_data(duration=25, timestamp=datetime.now().strftime("%Y
     conn.close()
 
 
-
+    
 def store_realtime_stress(facial_expression_stress,keystroke_stress, stress_level, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
     conn = create_connection()
     cursor = conn.cursor()
@@ -573,8 +415,6 @@ def get_avatar_status():
         return bool(row[0])
     else:
         return True
-
-
 
 class Configuration:
     def __init__(self):
@@ -693,3 +533,203 @@ class Configuration:
         self.cursor.execute(f"UPDATE {self.table_name} SET value = ? WHERE configuration = 'notification_status'", (status,))
         self.conn.commit()
         self.conn.close()
+
+# Dashboard visualizations
+def get_stress_metrics():
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    # 1. Get the latest stress record
+    cursor.execute("""
+        SELECT facial_expression_stress, keystroke_stress 
+        FROM overall_stress 
+        ORDER BY id DESC LIMIT 1
+    """)
+    result = cursor.fetchone()
+
+    facial_stress = keystroke_stress = current_stress = None
+    if result:
+        facial_stress = float(result[0])
+        keystroke_stress = float(result[1])
+        current_stress = round((facial_stress + keystroke_stress) / 2, 2)
+
+    # 2. Get today's date string
+    today_str = datetime.now().date().isoformat()
+
+    # 3. Fetch today's records
+    cursor.execute("""
+        SELECT facial_expression_stress, keystroke_stress 
+        FROM overall_stress
+        WHERE DATE(timestamp) = DATE(?)
+    """, (today_str,))
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    # 4. Calculate average and peak stress
+    avg_stress = None
+    peak_stress = None
+
+    if rows:
+        total_stress = 0
+        max_stress = 0
+
+        for row in rows:
+            try:
+                facial = float(row[0])
+                keystroke = float(row[1])
+                stress_level = (facial + keystroke) / 2
+                total_stress += stress_level
+
+                if stress_level > max_stress:
+                    max_stress = stress_level
+            except (TypeError, ValueError):
+                continue
+
+        count = len(rows)
+        if count > 0:
+            avg_stress = round(total_stress / count, 2)
+            peak_stress = round(max_stress, 2)
+
+    # 5. Return dictionary with all metrics
+    return {
+        "Current Stress": f"{current_stress:.2f}%" if current_stress is not None else "No data",
+        "Average Stress": f"{avg_stress:.2f}%" if avg_stress is not None else "No data",
+        "Peak Stress": f"{peak_stress:.2f}%" if peak_stress is not None else "No data"
+    }
+
+def get_feedback_counts():
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT 
+                SUM(CASE WHEN feedback = 1 THEN 1 ELSE 0 END) AS likes,
+                SUM(CASE WHEN feedback = 0 THEN 1 ELSE 0 END) AS unlikes
+            FROM recommendations_log
+            WHERE feedback IS NOT NULL
+        """)
+        result = cursor.fetchone()
+        likes, unlikes = result if result else (0, 0)
+        return {"likes": likes or 0, "unlikes": unlikes or 0}
+    except Exception as e:
+        print("Error fetching feedback counts:", e)
+        return {"likes": 0, "unlikes": 0}
+    finally:
+        conn.close()
+
+
+def fetch_recent_recommendations(limit=5):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT 
+                rl.id, 
+                rl.recommendation_id, 
+                rl.created_at, 
+                rl.feedback,
+                r.content
+            FROM recommendations_log rl
+            JOIN recommendation r ON rl.recommendation_id = r.id
+            ORDER BY datetime(rl.created_at) DESC
+            LIMIT ?
+        """, (limit,))
+
+        rows = cursor.fetchall()
+
+        recommendations = []
+        for row in rows:
+            log_id, rec_id, created_at, feedback, content = row
+
+            # Convert feedback: 1 = liked, 0 = unliked
+            if feedback == 1:
+                reaction = "liked"
+            elif feedback == 0:
+                reaction = "unliked"
+            else:
+                reaction = "unknown"  # This should not happen due to IS NOT NULL
+
+            recommendations.append({
+                "id": log_id,
+                "recommendation": content,
+                "timestamp": created_at,
+                "reaction": reaction
+            })
+
+        return recommendations
+
+    except Exception as e:
+        print("Error fetching recommendations:", e)
+        return []
+
+    finally:
+        conn.close()
+
+def fetch_user_dashboard(option='daily',date=None):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+
+    if date is None:
+            date = datetime.now().strftime("%Y-%m-%d")
+            # date = datetime.strptime(date, "%Y-%m-%d") + timedelta(days=-1)
+            # date = date.strftime("%Y-%m-%d")
+
+    if option == 'daily':
+        point_date = date + ' 23:59:59'
+        before_date = date + ' 00:00:00'
+    if option == 'weekly':
+        point_date = datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d") + ' 23:59:59'
+        before_date = datetime.strptime(date, "%Y-%m-%d") + timedelta(days=-7)
+        before_date = before_date.strftime("%Y-%m-%d") + ' 00:00:00'
+    if option == 'monthly':
+        point_date = datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d") + ' 23:59:59'
+        before_date = datetime.strptime(date, "%Y-%m-%d") + timedelta(days=-30)
+        before_date = before_date.strftime("%Y-%m-%d") + ' 00:00:00'
+    if option == 'yearly':
+        point_date = datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d") + ' 23:59:59'
+        before_date = datetime.strptime(date, "%Y-%m-%d") + timedelta(days=-365)
+        before_date = before_date.strftime("%Y-%m-%d") + ' 00:00:00'
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS overall_stress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            facial_expression_stress REAL,
+            keystroke_stress REAL,
+            stress_level INTEGER NOT NULL
+        )
+    """)
+    conn.commit()
+
+    cursor.execute("""
+    SELECT *,
+           CASE
+               WHEN facial_expression_stress = 0 OR keystroke_stress = 0 THEN
+                   facial_expression_stress + keystroke_stress
+               ELSE
+                   (facial_expression_stress + keystroke_stress) / 2
+            END AS overall
+        FROM overall_stress
+        WHERE timestamp BETWEEN ? AND ?
+    """, (before_date, point_date))
+
+    # print(f'point date: {point_date}')
+    # print(f'before date: {before_date}')
+
+    rows = cursor.fetchall()
+
+    data = {
+        'info': {
+            'option': option,
+            'point_date': point_date,
+            'before_date': before_date,
+        },
+        'rows': rows
+    }
+
+    conn.close()
+    return data
