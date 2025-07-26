@@ -2,6 +2,8 @@ import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # 0 = all logs, 1 = filter INFO, 2 = +WARNING, 3 = +ERROR
 
+from services.database import log_error
+
 
 import cv2
 import numpy as np
@@ -13,10 +15,12 @@ import multiprocessing
 from multiprocessing import Process, Manager
 from tensorflow.keras.models import load_model
 
-import services.database as db
+from services.database import store_facial_expression_data, Configuration
 
 
 def facial_expression_monitoring():
+    
+    
 
     # Make sure this class is available before loading
     class CBAM(tf.keras.layers.Layer):
@@ -39,10 +43,12 @@ def facial_expression_monitoring():
             channel_refined = tf.keras.layers.Multiply()([inputs, channel_att])
             spatial_att = self.spatial_attention(channel_refined)
             return tf.keras.layers.Multiply()([channel_refined, spatial_att])
+        
     # Now load the model
     print(" Loading model...")
     #model = load_model('models/sequential_model.h5')
-    model = load_model('models/sequential_model_improved.h5')
+    # model = load_model('models/sequential_model_improved.h5')
+    model = load_model('models/best_model_manual.h5')
     # model = load_model('models/sequential_model_improved.h5', compile=False)
 
     #model = load_model('models/cbam_cnn_stress_detection.h5', custom_objects={'CBAM': CBAM})
@@ -93,8 +99,9 @@ def facial_expression_monitoring():
 
         # Real-time detection loop
         last_capture = time.time()
+        configuration = Configuration()
         while True:
-            if db.monitoring_facial_expression() == False:
+            if configuration.facial_expression_is_running() == False:
                 cap.release()
                 continue
             else:
@@ -112,7 +119,7 @@ def facial_expression_monitoring():
             if current_time - last_capture >= 1:  # Every 1s
                 face = preprocess_face(frame)
                 if face is not None:
-                    prediction = model.predict(face)[0][0]
+                    prediction = model.predict(face,verbose=0)[0][0]
                     stress_queue.append(prediction)
                     stress_list.append(prediction)
                     last_capture = current_time
@@ -121,7 +128,7 @@ def facial_expression_monitoring():
                         stress_percentage = np.mean(stress_queue)
                         print(f"Stress Percentage: {stress_percentage:.2f}")
 
-                        db.store_facial_expression_data(round(float(stress_percentage)*100, 2))
+                        store_facial_expression_data(round(float(stress_percentage)*100, 2))
 
 
                         ### Store stress data in the database using user_id variable and current stress_presentage
@@ -140,4 +147,3 @@ def facial_expression_monitoring():
         # plot_process.terminate()
 
 
-#facial_expression_monitoring()
