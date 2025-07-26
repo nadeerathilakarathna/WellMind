@@ -3,6 +3,7 @@ import PIL.Image
 from services.database import Configuration
 import os
 from report.report_generator import start_report_generation
+import threading
 
 logo = PIL.Image.open("assets/logo/logo.png")
 
@@ -10,7 +11,7 @@ configuration = Configuration()
 
 def generate_report():
     report_thread = start_report_generation()
-    report_thread.join()
+    # report_thread.join()
 
 def run_tray():
     # ======= Main Tray Menu ========
