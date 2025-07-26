@@ -129,7 +129,7 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
             border=0,
             borderwidth=0,
             highlightthickness=0,
-            command=lambda: [on_like(), root.destroy()]
+            command=lambda: [on_like(), fade_and_close()]
         )
         like_btn.pack(side="left", padx=(0, 10))
         
@@ -150,7 +150,7 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
             border=0,
             borderwidth=0,
             highlightthickness=0,
-            command=lambda: [on_dislike(), root.destroy()]
+            command=lambda: [on_dislike(), fade_and_close()]
         )
         dislike_btn.pack(side="left")
         
@@ -196,6 +196,7 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
                         root.after(50, lambda: fade_step(alpha - 0.2))
                     else:
                         root.withdraw()
+                        root.after(100, root.destroy)
                 except tk.TclError:
                     print("Tcl Error during fade effect, likely due to window closure. 2nd pass.")
                     pass

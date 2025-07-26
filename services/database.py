@@ -169,6 +169,15 @@ def get_latest_facial_expression_data(duration=20, timestamp=datetime.now().strf
 
     # start_time = '2025-07-15 17:04:00'
     # end_time = '2025-07-15 17:05:00'
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS facial_expression_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            stress_value REAL NOT NULL
+        )
+    ''')
+
+    conn.commit()
 
     cursor.execute("""
         SELECT * FROM facial_expression_data
@@ -538,6 +547,17 @@ class Configuration:
 def get_stress_metrics():
     conn = create_connection()
     cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS overall_stress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            facial_expression_stress REAL,
+            keystroke_stress REAL,
+            stress_level INTEGER NOT NULL
+        )
+    """)
+    conn.commit()
+
 
     # 1. Get the latest stress record
     cursor.execute("""
@@ -549,8 +569,16 @@ def get_stress_metrics():
 
     facial_stress = keystroke_stress = current_stress = None
     if result:
-        facial_stress = float(result[0])
-        keystroke_stress = float(result[1])
+        if result[0] is None:
+            facial_stress = 0
+        else:
+            facial_stress = float(result[0])
+        if result[1] is None:
+            keystroke_stress = 0
+        else:
+            keystroke_stress = float(result[1])
+        # facial_stress = float(result[0])
+        # keystroke_stress = float(result[1])
         current_stress = round((facial_stress + keystroke_stress) / 2, 2)
 
     # 2. Get today's date string
@@ -602,6 +630,17 @@ def get_feedback_counts():
     conn = create_connection()
     cursor = conn.cursor()
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS recommendations_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            recommendation_id INTEGER NOT NULL,
+            created_at TEXT NOT NULL,
+            feedback INTEGER,
+            updated_at TEXT       
+        )
+    """)
+    conn.commit()
+
     try:
         cursor.execute("""
             SELECT 
@@ -623,6 +662,8 @@ def get_feedback_counts():
 def fetch_recent_recommendations(limit=5):
     conn = create_connection()
     cursor = conn.cursor()
+
+    init_recommendations()
 
     try:
         cursor.execute("""
@@ -671,7 +712,6 @@ def fetch_recent_recommendations(limit=5):
 def fetch_user_dashboard(option='daily',date=None):
     conn = create_connection()
     cursor = conn.cursor()
-
 
     if date is None:
             date = datetime.now().strftime("%Y-%m-%d")
@@ -733,3 +773,110 @@ def fetch_user_dashboard(option='daily',date=None):
 
     conn.close()
     return data
+
+
+
+class Report:
+    def __init__(self):   # date_list, start_date, end_date
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS overall_stress (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                facial_expression_stress REAL,
+                keystroke_stress REAL,
+                stress_level INTEGER NOT NULL
+            )
+        """)
+        conn.commit()
+
+        # Get start_date
+        cursor.execute("SELECT timestamp FROM overall_stress ORDER BY timestamp ASC LIMIT 1")
+        result = cursor.fetchone()
+        self.start_date = result[0] if result else None
+
+        # Get end_date
+        cursor.execute("SELECT timestamp FROM overall_stress ORDER BY timestamp DESC LIMIT 1")
+        result = cursor.fetchone()
+        self.end_date = result[0] if result else None
+
+        conn.close()
+
+        # Generate date_list
+        self.date_list = []
+        if self.start_date and self.end_date:
+            start = datetime.strptime(self.start_date, "%Y-%m-%d %H:%M:%S")
+            end = datetime.strptime(self.end_date, "%Y-%m-%d %H:%M:%S")
+
+            current = start.date()
+            while current <= end.date():
+                self.date_list.append(str(current))
+                current += timedelta(days=1)
+
+    def get_report_data(self,date = None):
+        if date == None:
+            return None
+        else:
+            conn = create_connection()
+            cursor = conn.cursor()
+            
+            end_timestamp = date + ' 23:59:59'
+            start_timestamp = date + ' 00:00:00'
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS overall_stress (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT NOT NULL,
+                    facial_expression_stress REAL,
+                    keystroke_stress REAL,
+                    stress_level INTEGER NOT NULL
+                )
+            """)
+            conn.commit()
+
+            cursor.execute("""
+                SELECT *,
+                    CASE
+                        WHEN facial_expression_stress IS NULL AND keystroke_stress IS NULL THEN NULL
+                        WHEN facial_expression_stress IS NULL THEN keystroke_stress
+                        WHEN keystroke_stress IS NULL THEN facial_expression_stress
+                        WHEN facial_expression_stress = 0 OR keystroke_stress = 0 THEN
+                            facial_expression_stress + keystroke_stress
+                        ELSE
+                            (facial_expression_stress + keystroke_stress) / 2
+                    END AS overall
+                FROM overall_stress
+                WHERE timestamp BETWEEN ? AND ?
+            """, (start_timestamp, end_timestamp))
+            stress_data = cursor.fetchall()
+
+            create_recommendations_log_table()
+
+
+            cursor.execute("""
+            SELECT created_at, feedback
+            FROM recommendations_log
+            WHERE created_at BETWEEN ? AND ?
+            """, (start_timestamp, end_timestamp))
+            recommendation_data = cursor.fetchall()
+            conn.close()
+
+            data = {
+                'date': date,
+                'start_timestamp': start_timestamp,
+                'end_timestamp': end_timestamp,
+                'stress_data': stress_data, #id, timestamp, facial_expression_stress, keystroke_stress, stress_level, overall_stress
+                'recommendation_data': recommendation_data
+            }
+        
+            return data
+        return None
+
+
+# report = Report()
+# print(report.date_list)
+# for date in report.date_list:
+#     report_data = report.get_report_data(date = date)
+#     print(report_data)

@@ -128,3 +128,4 @@ models/VIT/
 *.db
 *.sqlite3
 databases/
+reports/
