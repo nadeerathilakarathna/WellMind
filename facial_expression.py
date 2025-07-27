@@ -72,7 +72,7 @@ def facial_expression_monitoring():
 
     print(" Starting detection loop...")
     # Stress detection parameters
-    WINDOW_SIZE = 10
+    WINDOW_SIZE = 1
     stress_queue = deque(maxlen=WINDOW_SIZE)
     STRESS_THRESHOLD = 0.5
 

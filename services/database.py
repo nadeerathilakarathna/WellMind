@@ -384,7 +384,9 @@ def store_realtime_stress(facial_expression_stress,keystroke_stress, stress_leve
 
 
 
-def log_error(error_message, timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
+def log_error(error_message, timestamp=None):
+    if timestamp is None:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -743,15 +745,17 @@ def fetch_user_dashboard(option='daily',date=None):
             stress_level INTEGER NOT NULL
         )
     """)
-    conn.commit()
 
     cursor.execute("""
-    SELECT *,
-           CASE
-               WHEN facial_expression_stress = 0 OR keystroke_stress = 0 THEN
-                   facial_expression_stress + keystroke_stress
-               ELSE
-                   (facial_expression_stress + keystroke_stress) / 2
+        SELECT *,
+            CASE
+                WHEN facial_expression_stress IS NULL AND keystroke_stress IS NULL THEN NULL
+                WHEN facial_expression_stress IS NULL THEN keystroke_stress
+                WHEN keystroke_stress IS NULL THEN facial_expression_stress
+                WHEN facial_expression_stress = 0 OR keystroke_stress = 0 THEN
+                    facial_expression_stress + keystroke_stress
+                ELSE
+                    (facial_expression_stress + keystroke_stress) / 2
             END AS overall
         FROM overall_stress
         WHERE timestamp BETWEEN ? AND ?
