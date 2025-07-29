@@ -48,7 +48,7 @@ def facial_expression_monitoring():
     print(" Loading model...")
     #model = load_model('models/sequential_model.h5')
     # model = load_model('models/sequential_model_improved.h5')
-    model = load_model('models/best_model_manual.h5')
+    model = load_model('models/best_model_manual2.h5')
     # model = load_model('models/sequential_model_improved.h5', compile=False)
 
     #model = load_model('models/cbam_cnn_stress_detection.h5', custom_objects={'CBAM': CBAM})

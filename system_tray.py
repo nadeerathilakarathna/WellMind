@@ -6,6 +6,18 @@ from report.report_generator import start_report_generation
 import threading
 import subprocess
 import sys
+import subprocess
+import os
+
+
+def visit_dashboard():
+    subprocess.Popen(
+    'start wellmind',
+    shell=True,
+    creationflags=subprocess.CREATE_NO_WINDOW,
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL)
+    print("Dashboard opened")
 
 logo = PIL.Image.open("assets/logo/logo.png").copy()
 
@@ -22,10 +34,13 @@ def exit_program(icon):
     except:
         pass
 
+
+ 
+
 def run_tray():
     # ======= Main Tray Menu ========
     tray_menu = pystray.Menu(
-        pystray.MenuItem("WellMind", lambda: print("App: WellMind"), default=True),
+        pystray.MenuItem("WellMind", lambda: visit_dashboard(), default=True),
         pystray.MenuItem("Enable Avatar", lambda: configuration.avatar_set_status(not(configuration.avatar_is_running())),checked=lambda item:configuration.avatar_is_running()),
         pystray.MenuItem("Enable Facial Expressions",lambda: configuration.facial_expression_set_status(not(configuration.facial_expression_is_running())),checked=lambda item:configuration.facial_expression_is_running()),
         pystray.MenuItem("Enable Keystroke Dynamics",lambda: configuration.keystroke_dynamics_set_status(not(configuration.keystroke_dynamics_is_running())),checked=lambda item:configuration.keystroke_dynamics_is_running()),
