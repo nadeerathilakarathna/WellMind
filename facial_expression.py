@@ -4,7 +4,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # 0 = all logs, 1 = filter INFO, 2 = +
 
 from services.database import log_error
 
-
 import cv2
 import numpy as np
 import tensorflow as tf
@@ -14,14 +13,13 @@ from collections import deque
 import multiprocessing
 from multiprocessing import Process, Manager
 from tensorflow.keras.models import load_model
+from datetime import datetime
 
 from services.database import store_facial_expression_data, Configuration
 
 
 def facial_expression_monitoring():
     
-    
-
     # Make sure this class is available before loading
     class CBAM(tf.keras.layers.Layer):
         def __init__(self, reduction_ratio=8, **kwargs):  # <-- ADD **kwargs
@@ -43,34 +41,71 @@ def facial_expression_monitoring():
             channel_refined = tf.keras.layers.Multiply()([inputs, channel_att])
             spatial_att = self.spatial_attention(channel_refined)
             return tf.keras.layers.Multiply()([channel_refined, spatial_att])
+
+    def is_camera_available(index=0):
+        """Check if camera is available without keeping it open"""
+        cap = cv2.VideoCapture(index)
+        if cap.isOpened():
+            ret, _ = cap.read()
+            cap.release()
+            return ret
+        cap.release()
+        return False
+
+    def wait_for_camera(index=0, retry_interval=5):
+        """Wait until camera becomes available"""
+        print("Checking camera availability...")
+        while not is_camera_available(index):
+            print(f"Camera not available, retrying in {retry_interval} seconds...")
+            time.sleep(retry_interval)
         
-    # Now load the model
-    print(" Loading model...")
+        # Now actually open the camera
+        cap = cv2.VideoCapture(index)
+        if cap.isOpened():
+            print("Camera connected successfully.")
+            return cap
+        else:
+            print("Failed to open camera after detection. Retrying...")
+            return wait_for_camera(index, retry_interval)
+
+    def setup_camera(cap):
+        """Configure camera settings"""
+        cap.set(cv2.CAP_PROP_FPS, 30)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        return cap
+
+    # Wait for camera to be available before proceeding
+    print("Waiting for camera to become available...")
+    if not is_camera_available(0):
+        print("No camera detected. Waiting for camera connection...")
+        cap = wait_for_camera(0)
+    else:
+        print("Camera detected. Initializing...")
+        cap = cv2.VideoCapture(0)
+    
+    cap = setup_camera(cap)
+        
+    # Now load the model (only after camera is confirmed)
+    print("Loading model...")
     #model = load_model('models/sequential_model.h5')
     # model = load_model('models/sequential_model_improved.h5')
-    model = load_model('models/best_model_manual2.h5')
+    model = load_model('models/model.h5')
     # model = load_model('models/sequential_model_improved.h5', compile=False)
 
     #model = load_model('models/cbam_cnn_stress_detection.h5', custom_objects={'CBAM': CBAM})
     #model = load_model('models/cbam_cnn_stress_detection_improved.h5', custom_objects={'CBAM': CBAM})
 
-
-
-    # # Load trained model
-    # model = tf.keras.models.load_model('models/cbam_cnn_stress_detection.h5')
-
     # Load Haar cascade
     #face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     face_cascade = cv2.CascadeClassifier('haarcascades/haarcascade_frontalface_default.xml')
 
-    print(" Opening webcam...")
-    # Initialize webcam
-    cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FPS, 30)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    configuration = Configuration()
 
-    print(" Starting detection loop...")
+    if datetime.now() < datetime(2025, 8, 15):
+        configuration.facial_expression_set_status(True)
+
+    print("Starting detection loop...")
     # Stress detection parameters
     WINDOW_SIZE = 1
     stress_queue = deque(maxlen=WINDOW_SIZE)
@@ -99,51 +134,85 @@ def facial_expression_monitoring():
 
         # Real-time detection loop
         last_capture = time.time()
-        configuration = Configuration()
+        
+        camera_error_count = 0
+        max_camera_errors = 3
+        
         while True:
             if configuration.facial_expression_is_running() == False:
-                cap.release()
+                if cap.isOpened():
+                    cap.release()
+                print("Facial expression monitoring paused...")
+                time.sleep(2)  # Wait before checking again
                 continue
             else:
-                if not (cap.isOpened()):
-                    cap = cv2.VideoCapture(0)
-                    cap.set(cv2.CAP_PROP_FPS, 30)
-                    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-                    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+                # Check if camera is still available and reopen if needed
+                if not cap.isOpened():
+                    print("Camera disconnected. Attempting to reconnect...")
+                    if is_camera_available(0):
+                        cap = cv2.VideoCapture(0)
+                        cap = setup_camera(cap)
+                        camera_error_count = 0
+                        print("Camera reconnected successfully.")
+                    else:
+                        camera_error_count += 1
+                        if camera_error_count >= max_camera_errors:
+                            print("Camera unavailable after multiple attempts. Waiting for camera...")
+                            cap = wait_for_camera(0)
+                            cap = setup_camera(cap)
+                            camera_error_count = 0
+                        else:
+                            print(f"Camera not available (attempt {camera_error_count}/{max_camera_errors}). Retrying...")
+                            time.sleep(2)
+                            continue
 
             ret, frame = cap.read()
             if not ret:
-                break
+                print("Failed to read from camera. Checking camera status...")
+                camera_error_count += 1
+                if camera_error_count >= max_camera_errors:
+                    print("Multiple camera read failures. Reconnecting...")
+                    cap.release()
+                    cap = wait_for_camera(0)
+                    cap = setup_camera(cap)
+                    camera_error_count = 0
+                time.sleep(1)
+                continue
+            
+            # Reset error count on successful frame read
+            camera_error_count = 0
             current_time = time.time()
 
             if current_time - last_capture >= 1:  # Every 1s
                 face = preprocess_face(frame)
                 if face is not None:
-                    prediction = model.predict(face,verbose=0)[0][0]
-                    stress_queue.append(prediction)
-                    stress_list.append(prediction)
-                    last_capture = current_time
+                    try:
+                        prediction = model.predict(face, verbose=0)[0][0]
+                        stress_queue.append(prediction)
+                        stress_list.append(prediction)
+                        last_capture = current_time
 
-                    if len(stress_queue) == WINDOW_SIZE:
-                        stress_percentage = np.mean(stress_queue)
-                        print(f"Stress Percentage: {stress_percentage:.2f}")
+                        if len(stress_queue) == WINDOW_SIZE:
+                            stress_percentage = np.mean(stress_queue)
+                            print(f"Stress Percentage: {stress_percentage:.2f}")
 
-                        store_facial_expression_data(round(float(stress_percentage)*100, 2))
+                            store_facial_expression_data(round(float(stress_percentage)*100, 2))
 
+                            ### Store stress data in the database using user_id variable and current stress_presentage
 
-                        ### Store stress data in the database using user_id variable and current stress_presentage
-
-                        if stress_percentage > STRESS_THRESHOLD:
-                            print("Stress Alert: High stress detected!")
-                        else:
-                            print("Stress level: Normal")
+                            if stress_percentage > STRESS_THRESHOLD:
+                                print("Stress Alert: High stress detected!")
+                            else:
+                                print("Stress level: Normal")
+                    except Exception as e:
+                        print(f"Error during prediction: {e}")
+                        log_error(str(e))
 
             #cv2.imshow('Webcam', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-        cap.release()
+        if cap.isOpened():
+            cap.release()
         cv2.destroyAllWindows()
         # plot_process.terminate()
-
-
