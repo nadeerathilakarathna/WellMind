@@ -330,14 +330,14 @@ class DashboardScreen(ctk.CTkFrame):
             font=ctk.CTkFont("Poppins", 12),
             dropdown_font=ctk.CTkFont("Poppins", 12)
         )
-        self.time_period_dropdown.set("This week")  # Default value
+        self.time_period_dropdown.set("Today")  # Default value
         self.time_period_dropdown.pack()
 
         self.graph_frame = ctk.CTkFrame(graph_card, fg_color="white", corner_radius=10)
         self.graph_frame.pack(fill=ctk.BOTH, expand=True, padx=20, pady=10)
 
         # Initialize with default graph
-        self.update_stress_graph("This week")
+        self.update_stress_graph("Today")
 
         # Recommendations section
         rec_section = ctk.CTkFrame(self.scrollable_frame, fg_color="#333333", corner_radius=12)

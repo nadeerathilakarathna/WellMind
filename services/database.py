@@ -545,10 +545,21 @@ class Configuration:
         self.conn.commit()
         self.conn.close()
 
-# Dashboard visualizations
-def get_stress_metrics():
+
+
+def get_stress_metrics(date=None):
     conn = create_connection()
     cursor = conn.cursor()
+
+    if date is None:
+            date = datetime.now().strftime("%Y-%m-%d")
+            # date = datetime.strptime(date, "%Y-%m-%d") + timedelta(days=-1)
+            # date = date.strftime("%Y-%m-%d")
+
+    point_date = date + ' 23:59:59'
+    before_date = date + ' 00:00:00'
+   
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS overall_stress (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -558,73 +569,47 @@ def get_stress_metrics():
             stress_level INTEGER NOT NULL
         )
     """)
-    conn.commit()
 
-
-    # 1. Get the latest stress record
     cursor.execute("""
-        SELECT facial_expression_stress, keystroke_stress 
-        FROM overall_stress 
-        ORDER BY id DESC LIMIT 1
-    """)
-    result = cursor.fetchone()
-
-    facial_stress = keystroke_stress = current_stress = None
-    if result:
-        if result[0] is None:
-            facial_stress = 0
-        else:
-            facial_stress = float(result[0])
-        if result[1] is None:
-            keystroke_stress = 0
-        else:
-            keystroke_stress = float(result[1])
-        # facial_stress = float(result[0])
-        # keystroke_stress = float(result[1])
-        current_stress = round((facial_stress + keystroke_stress) / 2, 2)
-
-    # 2. Get today's date string
-    today_str = datetime.now().date().isoformat()
-
-    # 3. Fetch today's records
-    cursor.execute("""
-        SELECT facial_expression_stress, keystroke_stress 
+        SELECT *,
+            CASE
+                WHEN facial_expression_stress IS NULL AND keystroke_stress IS NULL THEN NULL
+                WHEN facial_expression_stress IS NULL THEN keystroke_stress
+                WHEN keystroke_stress IS NULL THEN facial_expression_stress
+                WHEN facial_expression_stress = 0 OR keystroke_stress = 0 THEN
+                    facial_expression_stress + keystroke_stress
+                ELSE
+                    (facial_expression_stress + keystroke_stress) / 2
+            END AS overall
         FROM overall_stress
-        WHERE DATE(timestamp) = DATE(?)
-    """, (today_str,))
+        WHERE timestamp BETWEEN ? AND ?
+        ORDER BY timestamp DESC
+    """, (before_date, point_date))
 
     rows = cursor.fetchall()
-    conn.close()
 
-    # 4. Calculate average and peak stress
-    avg_stress = None
+    current_stress = None
+    average_stress = None
     peak_stress = None
 
-    if rows:
-        total_stress = 0
-        max_stress = 0
+    for row in rows:
+        if row[5] is not None:
+            current_stress = round(row[5], 2)
+            break
+    
+    stress_values = []
 
-        for row in rows:
-            try:
-                facial = float(row[0])
-                keystroke = float(row[1])
-                stress_level = (facial + keystroke) / 2
-                total_stress += stress_level
+    for row in rows:
+        if row[5] is not None:
+            stress_values.append(row[5])
+    
+    if stress_values:
+        average_stress = round(sum(stress_values) / len(stress_values), 2)
+        peak_stress = round(max(stress_values), 2)
 
-                if stress_level > max_stress:
-                    max_stress = stress_level
-            except (TypeError, ValueError):
-                continue
-
-        count = len(rows)
-        if count > 0:
-            avg_stress = round(total_stress / count, 2)
-            peak_stress = round(max_stress, 2)
-
-    # 5. Return dictionary with all metrics
     return {
         "Current Stress": f"{current_stress:.2f}%" if current_stress is not None else "No data",
-        "Average Stress": f"{avg_stress:.2f}%" if avg_stress is not None else "No data",
+        "Average Stress": f"{average_stress:.2f}%" if average_stress is not None else "No data",
         "Peak Stress": f"{peak_stress:.2f}%" if peak_stress is not None else "No data"
     }
 
