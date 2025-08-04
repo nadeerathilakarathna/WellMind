@@ -9,16 +9,12 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
         width = 420
         
         # Calculate dynamic height based on message length
-        # Estimate characters per line (accounting for wrapping at 380px width)
-        chars_per_line = 50  # Approximate for Segoe UI 11pt
+        chars_per_line = 50
         estimated_lines = max(1, len(message) // chars_per_line + (1 if len(message) % chars_per_line else 0))
         
-        # Calculate height: header(55) + message(line_height*lines + padding) + buttons(65) + progress(3) + margins
-        base_height = 55 + 65 + 3 + 40  # Fixed components height
-        message_height = max(30, estimated_lines * 18 + 20)  # Dynamic message area
+        base_height = 55 + 65 + 3 + 40
+        message_height = max(30, estimated_lines * 18 + 20)
         height = base_height + message_height
-        
-        # Ensure minimum and maximum height
         height = max(180, min(height, 400))
         
         x = screen.width - width - 20
@@ -28,9 +24,11 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
         root.overrideredirect(True)
         root.attributes("-topmost", True)
         root.geometry(f"{width}x{height}+{x}+{y}")
-        
-        # Modern gradient-like background with rounded appearance
         root.configure(bg="#1A1A1A")
+        
+        # Flags to track window state and prevent multiple operations
+        window_destroyed = threading.Event()
+        animation_running = threading.Event()
         
         # Get current time and determine greeting + colors
         import datetime
@@ -38,22 +36,22 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
         
         if 5 <= current_hour < 12:
             greeting = "Good Morning! ☀️"
-            greeting_color = "#FFB74D"  # Orange for morning
-            progress_color = "#FFB74D"  # Same as greeting color
+            greeting_color = "#FFB74D"
+            progress_color = "#FFB74D"
         elif 12 <= current_hour < 17:
             greeting = "Good Afternoon! ⛅"
-            greeting_color = "#42A5F5"  # Blue for afternoon
-            progress_color = "#42A5F5"  # Same as greeting color
+            greeting_color = "#42A5F5"
+            progress_color = "#42A5F5"
         elif 17 <= current_hour < 21:
             greeting = "Good Evening! 🌅"
-            greeting_color = "#FF7043"  # Orange-red for evening
-            progress_color = "#FF7043"  # Same as greeting color
+            greeting_color = "#FF7043"
+            progress_color = "#FF7043"
         else:
             greeting = "Good Night! 🌙"
-            greeting_color = "#9C27B0"  # Purple for night
-            progress_color = "#9C27B0"  # Same as greeting color
+            greeting_color = "#9C27B0"
+            progress_color = "#9C27B0"
         
-        # Progress bar for auto-close timer - AT THE VERY TOP
+        # Progress bar for auto-close timer
         progress_frame = tk.Frame(root, bg="#1A1A1A", height=3)
         progress_frame.pack(side="top", fill="x")
         progress_frame.pack_propagate(False)
@@ -61,20 +59,19 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
         progress_bar = tk.Frame(progress_frame, bg=progress_color, height=3)
         progress_bar.pack(side="left", fill="y")
         
-        # Add subtle border effect (below progress bar)
+        # Border effect
         border_frame = tk.Frame(root, bg="#2D2D2D", highlightthickness=0)
         border_frame.pack(fill="both", expand=True, padx=1, pady=1)
         
-        # Main content frame with modern spacing
+        # Main content frame
         main_frame = tk.Frame(border_frame, bg="#1A1A1A", highlightthickness=0)
         main_frame.pack(fill="both", expand=True, padx=1, pady=1)
 
-        # Header section with greeting
+        # Header section
         header_frame = tk.Frame(main_frame, bg="#1A1A1A", height=40)
         header_frame.pack(fill="x", padx=20, pady=(15, 0))
         header_frame.pack_propagate(False)
         
-        # Greeting label with time-based styling
         greeting_label = tk.Label(
             header_frame,
             text=greeting,
@@ -84,7 +81,7 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
         )
         greeting_label.pack(side="left", anchor="w")
 
-        # Message content with modern typography - dynamic height
+        # Message content
         content_frame = tk.Frame(main_frame, bg="#1A1A1A")
         content_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
@@ -100,7 +97,7 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
         )
         msg_label.pack(fill="both", expand=True, anchor="nw")
 
-        # Modern button section - fixed position at bottom
+        # Button section
         action_frame = tk.Frame(main_frame, bg="#1A1A1A", height=50)
         action_frame.pack(side="bottom", fill="x", padx=20, pady=(10, 15))
         action_frame.pack_propagate(False)
@@ -108,14 +105,44 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
         # Button styling function
         def style_button(button, bg_color, hover_color, text_color="#FFFFFF"):
             def on_enter(e):
-                button.config(bg=hover_color)
+                if not window_destroyed.is_set():
+                    try:
+                        button.config(bg=hover_color)
+                    except tk.TclError:
+                        pass
             def on_leave(e):
-                button.config(bg=bg_color)
+                if not window_destroyed.is_set():
+                    try:
+                        button.config(bg=bg_color)
+                    except tk.TclError:
+                        pass
             
             button.bind("<Enter>", on_enter)
             button.bind("<Leave>", on_leave)
 
-        # Like button with green design and rounded corners
+        # Safe destroy function that prevents TclError
+        def safe_destroy():
+            if not window_destroyed.is_set():
+                window_destroyed.set()
+                animation_running.clear()
+                try:
+                    # First withdraw to hide the window
+                    root.withdraw()
+                    # Force update to process withdraw
+                    root.update_idletasks()
+                    # Small delay to ensure smooth cleanup
+                    root.after_idle(lambda: root.quit())
+                    # Destroy after quit
+                    root.after(10, root.destroy)
+                except tk.TclError:
+                    # If TclError still occurs, force destroy in a more aggressive way
+                    try:
+                        root.quit()
+                        root.destroy()
+                    except:
+                        pass
+
+        # Like button
         like_btn = tk.Button(
             action_frame,
             text="👍  Like",
@@ -129,14 +156,11 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
             border=0,
             borderwidth=0,
             highlightthickness=0,
-            command=lambda: [on_like(), fade_and_close()]
+            command=lambda: [on_like(), safe_destroy()]
         )
         like_btn.pack(side="left", padx=(0, 10))
         
-        # Apply rounded corners using a custom style
-        like_btn.configure(relief="flat", bd=0)
-        
-        # Unlike button with red design and rounded corners
+        # Dislike button
         dislike_btn = tk.Button(
             action_frame,
             text="👎  Unlike",
@@ -150,66 +174,83 @@ def show_modern_notification(rec_id, message, on_like, on_dislike, duration=15):
             border=0,
             borderwidth=0,
             highlightthickness=0,
-            command=lambda: [on_dislike(), fade_and_close()]
+            command=lambda: [on_dislike(), safe_destroy()]
         )
         dislike_btn.pack(side="left")
-        
-        # Apply rounded corners using a custom style
-        dislike_btn.configure(relief="flat", bd=0)
         
         style_button(like_btn, "#00C851", "#00A844", "#FFFFFF")
         style_button(dislike_btn, "#FF4444", "#E53E3E", "#FFFFFF")
         
-        # Animate progress bar using tkinter's after method
+        # Thread-safe progress bar animation
         def animate_progress(step=0):
+            if window_destroyed.is_set() or not animation_running.is_set():
+                return
+                
             try:
-                if step < duration * 10:
+                if step < duration * 10 and not window_destroyed.is_set():
                     progress_width = int((width * (duration * 10 - step)) / (duration * 10))
-                    progress_bar.config(width=progress_width)
+                    if progress_width > 0:
+                        progress_bar.config(width=progress_width)
                     root.after(100, lambda: animate_progress(step + 1))
+                else:
+                    # Animation completed, trigger auto-close
+                    if not window_destroyed.is_set():
+                        safe_destroy()
             except tk.TclError:
-                print("Tcl Error during progress animation, likely due to window closure. 1st pass.")
-                pass
+                # Window was destroyed during animation
+                window_destroyed.set()
+                animation_running.clear()
         
         # Slide-in animation
         def slide_in():
+            if window_destroyed.is_set():
+                return
+                
             start_x = screen.width
             end_x = screen.width - width - 20
             steps = 20
             
-            for i in range(steps + 1):
-                current_x = start_x - (start_x - end_x) * (i / steps)
-                root.geometry(f"{width}x{height}+{int(current_x)}+{y}")
-                root.update()
-                time.sleep(0.02)
+            try:
+                for i in range(steps + 1):
+                    if window_destroyed.is_set():
+                        break
+                    current_x = start_x - (start_x - end_x) * (i / steps)
+                    root.geometry(f"{width}x{height}+{int(current_x)}+{y}")
+                    root.update()
+                    time.sleep(0.02)
+            except tk.TclError:
+                window_destroyed.set()
+        
+        # Cleanup on window close
+        def on_closing():
+            safe_destroy()
+        
+        root.protocol("WM_DELETE_WINDOW", on_closing)
         
         # Start animations
+        animation_running.set()
         root.after(10, slide_in)
         root.after(50, animate_progress)
         
-        # Auto close with fade effect
-        def fade_and_close():
-            def fade_step(alpha=0.8):
-                try:
-                    if alpha > 0:
-                        root.attributes("-alpha", alpha)
-                        root.after(50, lambda: fade_step(alpha - 0.2))
-                    else:
-                        root.withdraw()
-                        root.after(100, root.destroy)
-                except tk.TclError:
-                    print("Tcl Error during fade effect, likely due to window closure. 2nd pass.")
-                    pass
-            fade_step()
-
-        root.after(duration * 1000, fade_and_close)
-        
-        # Add subtle shadow effect by adjusting window attributes
+        # Set initial alpha
         try:
             root.attributes("-alpha", 0.95)
         except:
             pass
-            
-        root.mainloop()
+        
+        # Start the main loop
+        try:
+            root.mainloop()
+        except tk.TclError:
+            pass
+        finally:
+            # Ensure cleanup happens
+            if not window_destroyed.is_set():
+                window_destroyed.set()
+            animation_running.clear()
 
-    threading.Thread(target=run, daemon=True).start()
+    # Create and start thread
+    t = threading.Thread(target=run, daemon=True)
+    t.start()
+    # Don't join here - let it run independently
+    return t  # Return thread reference if needed

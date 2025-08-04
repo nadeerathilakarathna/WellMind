@@ -10,7 +10,7 @@ def get_level(score):
     if score is None:
         return 0
     elif 0 <= score <= 50:
-        return 1
+        return 0
     elif 50 <= score <= 60:
         return 1
     elif 60 <= score <= 70:

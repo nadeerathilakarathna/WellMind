@@ -5,6 +5,7 @@ from recommendations import start_recommendation
 
 def calculate_facial_expression_summary():
     duration = 20 # in minutes
+    time.sleep(10)
     print('PRINTING FE SUMMARY')
     while True:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

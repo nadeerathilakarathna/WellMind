@@ -80,6 +80,10 @@ def calculate_features(duration_minutes=2):
     return [mean_hold, mean_flight, typing_speed, error_rate]
 
 def predict_and_store():
+    configuration = Configuration()
+    if datetime.now() < datetime(2025, 8, 15):
+        configuration.keystroke_dynamics_set_status(True)
+        
     conn_thread = sqlite3.connect('databases/wellmind.db', check_same_thread=False)
     cursor_thread = conn_thread.cursor()
     cursor_thread.execute('''
@@ -99,7 +103,7 @@ def predict_and_store():
     max_intervals = summary_window // interval_minutes
 
     predictions = []
-    configuration = Configuration()
+    
     while True:
         time.sleep(interval_minutes * 60)
 

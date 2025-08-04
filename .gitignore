@@ -129,3 +129,6 @@ models/VIT/
 *.sqlite3
 databases/
 reports/
+
+*.pys
+venv2/
