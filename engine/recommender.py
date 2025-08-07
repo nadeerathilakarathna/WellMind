@@ -4,21 +4,22 @@ from engine.tracker import has_been_shown, was_disliked
 from services.database import get_recommendations as get_recommendation_from_db
 from services.database import store_realtime_stress
 import services.database as db
+from datetime import datetime
 
 def get_level(score):
     if score is None:
         return 0
-    elif 0 <= score <= 49:
-        return 1
+    elif 0 <= score <= 50:
+        return 0
     elif 50 <= score <= 60:
         return 1
-    elif 61 <= score <= 70:
+    elif 60 <= score <= 70:
         return 2
-    elif 71 <= score <= 80:
+    elif 70 <= score <= 80:
         return 3
-    elif 81 <= score <= 90:
+    elif 80 <= score <= 90:
         return 4
-    elif 91 <= score <= 100:
+    elif 90 <= score <= 100:
         return 5
     else:
         print(f"Type: {type(score)}, Value: {score}")
@@ -30,8 +31,9 @@ def get_recommendation(facial_value, keystroke_value) -> tuple:
     level_facial = get_level(facial_value) #Stress level > None = 0 and 1,2,3,4,5
     level_keystroke = get_level(keystroke_value) #Stress level > None = 0 and 1,2,3,4,5
     final_level = level_facial if level_facial == level_keystroke else max(level_facial, level_keystroke)
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    store_realtime_stress(facial_value, keystroke_value, final_level)
+    store_realtime_stress(facial_value, keystroke_value, final_level,timestamp)
 
     if final_level == 0:
         return (None,None,None,0) #No recommendations

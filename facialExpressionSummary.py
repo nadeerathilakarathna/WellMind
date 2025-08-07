@@ -4,14 +4,9 @@ import time
 from recommendations import start_recommendation
 
 def calculate_facial_expression_summary():
-    duration = 1 # in minutes
-    print('''
-    
-    
-    FE SUMMARY
-  
-    
-    ''')
+    duration = 20 # in minutes
+    time.sleep(10)
+    print('PRINTING FE SUMMARY')
     while True:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -21,7 +16,7 @@ def calculate_facial_expression_summary():
         print(f"Timestamp: {timestamp} - Overall Facial Stress Value: {facial_value}")
         print(f"Timestamp: {timestamp} - Overall Keystroke Stress Value: {keystroke_value}")
 
-        start_recommendation(facial_value, 50)
+        start_recommendation(facial_value, keystroke_value)
         
         time.sleep(60*duration)
 

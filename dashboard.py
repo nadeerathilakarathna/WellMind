@@ -13,23 +13,23 @@ def main():
     # Set the appearance of app
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
-    root = ctk.CTk()
-    root.title("WellMind")
+    root2 = ctk.CTk()
+    root2.title("WellMind")
 
     # Get screen resolution
     width = GetSystemMetrics(0)//1.7
     height = GetSystemMetrics(1)//1.7
-    root.geometry(f"{width}x{height}")
-    root.minsize(width, height)
+    root2.geometry(f"{width}x{height}")
+    root2.minsize(width, height)
 
     # Initialize database
     create_user_table()
 
     # Start Splash screen
-    SplashScreen(root)
+    SplashScreen(root2)
 
     # Launch avatar as floating overlay
-    root.mainloop()
+    root2.mainloop()
 
 
 if __name__ == "__main__":

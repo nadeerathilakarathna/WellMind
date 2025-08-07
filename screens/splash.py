@@ -49,6 +49,7 @@ class SplashScreen(ctk.CTkFrame):
 
         # Optionally cancel scheduled .after() callback
         self.after_cancel(self.navigate_next_screen)
+        self.root.withdraw()
 
         # Close the app completely
         self.root.destroy()

@@ -6,7 +6,7 @@ import joblib
 import sqlite3
 from datetime import datetime
 import pandas as pd
-
+from services.database import Configuration
 
 model = joblib.load('models/keystroke/random_forest_stress_model.joblib')
 
@@ -80,6 +80,10 @@ def calculate_features(duration_minutes=2):
     return [mean_hold, mean_flight, typing_speed, error_rate]
 
 def predict_and_store():
+    configuration = Configuration()
+    if datetime.now() < datetime(2025, 8, 15):
+        configuration.keystroke_dynamics_set_status(True)
+        
     conn_thread = sqlite3.connect('databases/wellmind.db', check_same_thread=False)
     cursor_thread = conn_thread.cursor()
     cursor_thread.execute('''
@@ -94,13 +98,17 @@ def predict_and_store():
 
     feature_names = ['mean_hold_time', 'mean_flight_time', 'avg_typing_speed', 'avg_error_rate']
     MIN_KEYSTROKES = 8
-    interval_minutes = 0.1 #2
-    summary_window = 1  # in minutes #20
+    interval_minutes = 2 #2
+    summary_window = 20  # in minutes #20
     max_intervals = summary_window // interval_minutes
 
     predictions = []
+    
     while True:
         time.sleep(interval_minutes * 60)
+
+        if not(configuration.keystroke_dynamics_is_running()):
+            continue
 
         features = calculate_features(duration_minutes=interval_minutes)
         total_keys = int((features[2] * (interval_minutes * 60)) / 60)
