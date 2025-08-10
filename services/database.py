@@ -551,6 +551,8 @@ def get_stress_metrics(date=None):
     conn = create_connection()
     cursor = conn.cursor()
 
+    # date = datetime(2025, 8, 1).strftime("%Y-%m-%d")
+
     if date is None:
             date = datetime.now().strftime("%Y-%m-%d")
             # date = datetime.strptime(date, "%Y-%m-%d") + timedelta(days=-1)
@@ -699,6 +701,7 @@ def fetch_recent_recommendations(limit=5):
 def fetch_user_dashboard(option='daily',date=None):
     conn = create_connection()
     cursor = conn.cursor()
+    # date = datetime(2025, 8, 1).strftime("%Y-%m-%d")
 
     if date is None:
             date = datetime.now().strftime("%Y-%m-%d")

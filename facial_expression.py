@@ -88,13 +88,8 @@ def facial_expression_monitoring():
         
     # Now load the model (only after camera is confirmed)
     print("Loading model...")
-    #model = load_model('models/sequential_model.h5')
-    # model = load_model('models/sequential_model_improved.h5')
-    model = load_model('models/model.h5')
-    # model = load_model('models/sequential_model_improved.h5', compile=False)
 
-    #model = load_model('models/cbam_cnn_stress_detection.h5', custom_objects={'CBAM': CBAM})
-    #model = load_model('models/cbam_cnn_stress_detection_improved.h5', custom_objects={'CBAM': CBAM})
+    model = load_model('models/facial/facial_expression_model.h5')
 
     # Load Haar cascade
     #face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
