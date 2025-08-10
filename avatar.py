@@ -61,15 +61,18 @@ def on_power_change(status):
 
 # Event handlers for internet connection state or unstable
 def on_internet_change(status):
-    if avatar_overlay_instance:
-        if status == "connected":
-            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/internet_connected.png")
-            time.sleep(5)
-            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
-        elif status == "disconnected":
-            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/internet_disconnected.png")
-            time.sleep(5)
-            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
+    try:
+        if avatar_overlay_instance:
+            if status == "connected":
+                avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/internet_connected.png")
+                time.sleep(5)
+                avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
+            elif status == "disconnected":
+                avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/internet_disconnected.png")
+                time.sleep(5)
+                avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
+    except Exception as e:
+        print(e)
 
 
 # Listener wrappers
