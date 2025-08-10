@@ -8,7 +8,7 @@ from datetime import datetime
 import pandas as pd
 from services.database import Configuration
 
-model = joblib.load('models/keystroke/random_forest_stress_model.joblib')
+model = joblib.load('models/keystroke/keystroke_model.joblib')
 
 key_down_times = {}
 hold_times = []
