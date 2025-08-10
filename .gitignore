@@ -128,3 +128,12 @@ models/VIT/
 *.db
 *.sqlite3
 databases/
+reports/
+
+*.pys
+venv2/
+test_facial.py
+models/test/
+test_plotter.py
+test_facial_multi.py
+test_plotter_multi.py

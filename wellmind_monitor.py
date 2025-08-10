@@ -5,6 +5,8 @@ from facial_expression import facial_expression_monitoring
 import multiprocessing
 from facialExpressionSummary import calculate_facial_expression_summary
 from system_tray import run_tray
+from services.database import log_error
+import sys
 
 # import customtkinter as ctk
 # import tkinter as tk
@@ -29,33 +31,53 @@ if __name__ == "__main__":
     
     pred_thread.start()
 
-    avatar_thread = threading.Thread(target=avatar.run_avatar, daemon=True)
+    avatar_thread = threading.Thread(target=avatar.run_avatar,daemon=True)
     avatar_thread.start()
 
-    facial_expression_summary_thread = threading.Thread(target=calculate_facial_expression_summary, daemon=True)
+    facial_expression_summary_thread = threading.Thread(target=calculate_facial_expression_summary,daemon=True)
     facial_expression_summary_thread.start()
 
-    tray_thread = threading.Thread(target=run_tray,daemon=True)
+    tray_thread = threading.Thread(target=run_tray,)
     tray_thread.start()
     
 
-    with keyboard.Listener(on_press=keystroke.on_press, on_release=keystroke.on_release) as listener:
-        listener.join()
-
-    # def start_keyboard_listener():
-    #     listener = keyboard.Listener(on_press=keystroke.on_press,on_release=keystroke.on_release)
-    #     listener.start()  # non-blocking
+    # with keyboard.Listener(on_press=keystroke.on_press, on_release=keystroke.on_release) as listener:
     #     listener.join()
 
-    # keyboard_thread = threading.Thread(target=start_keyboard_listener, daemon=True)
-    # keyboard_thread.start()
+
+    # try:
+    #     with keyboard.Listener(
+    #         on_press=keystroke.on_press, 
+    #         on_release=keystroke.on_release
+    #     ) as listener:
+    #         listener.join()
+    # except Exception as e:
+    #     error = f'[ERROR] main, keyboard listner: {e}'
+    #     log_error(error)
+
+    try:
+        listener = keyboard.Listener(
+            on_press=keystroke.on_press,
+            on_release=keystroke.on_release
+        )
+
+        # Wrap listener.start() and keep thread alive
+        thread = threading.Thread(target=listener.run, daemon=True)  # make it a daemon thread
+        thread.start()
+
+    except Exception as e:
+        error = f'[ERROR] main, keyboard listener: {e}'
+        log_error(error)
 
     
-    
+
+
+    tray_thread.join()
     
 
     print("Program ended.")
 
+    sys.exit(0)
 
 
 

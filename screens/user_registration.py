@@ -2,6 +2,7 @@ import customtkinter as ctk
 from PIL import Image
 import os
 import calendar
+import time
 import datetime
 from tkinter import messagebox
 from screens.dashboard import DashboardScreen
@@ -278,4 +279,6 @@ class UserRegistrationScreen(ctk.CTkFrame):
 
         # Navigate to dashboard
         self.pack_forget()
-        DashboardScreen(self.root, self.root)
+        self.root.destroy()
+        time.sleep(1)
+        # DashboardScreen(self.root, self.root)
