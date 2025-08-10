@@ -13,55 +13,63 @@ from listeners.usb_listener import USBEventListener
 from listeners.power_listener import PowerEventListener, SYSTEM_POWER_STATUS, PBT_APMPOWERSTATUSCHANGE
 from listeners.internet_connectivity_listener import InternetEventListener
 
+avatar_config = Configuration()
 
 # Launch avatar
 def launch_avatar_overlay():
     global avatar_overlay_instance
+    
     time.sleep(1.0)
-    avatar_overlay_instance = AvatarOverlay("assets/animations/default_avatar.png")
+    avatar_overlay_instance = AvatarOverlay(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
     avatar_overlay_instance.update()
+    current_avatar = avatar_config.get_current_avatar()
+    while True:
+        if current_avatar != avatar_config.get_current_avatar():
+            current_avatar = avatar_config.get_current_avatar()
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
+        time.sleep(1.0)
 
 # Event handlers for usb plug and unplug
 def on_usb_change(event_type):
     if avatar_overlay_instance:
         if event_type == "inserted":
-            avatar_overlay_instance.update_avatar_image("assets/animations/plugged_usb.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/plugged_usb.png")
             time.sleep(5)
-            avatar_overlay_instance.update_avatar_image("assets/animations/default_avatar.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
         elif event_type == "removed":
-            avatar_overlay_instance.update_avatar_image("assets/animations/unplugged_usb.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/unplugged_usb.png")
             time.sleep(5)
-            avatar_overlay_instance.update_avatar_image("assets/animations/default_avatar.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
 
 
 # Event handlers for system power battery/plug to the power/battery low
 def on_power_change(status):
     if avatar_overlay_instance:
         if status == "on_ac":
-            avatar_overlay_instance.update_avatar_image("assets/animations/connect_power.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/connect_power.png")
             time.sleep(5)
-            avatar_overlay_instance.update_avatar_image("assets/animations/default_avatar.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
         elif status == "on_battery":
-            avatar_overlay_instance.update_avatar_image("assets/animations/disconnect_power.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/disconnect_power.png")
             time.sleep(5)
-            avatar_overlay_instance.update_avatar_image("assets/animations/default_avatar.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
         elif status == "low_battery":
-            avatar_overlay_instance.update_avatar_image("assets/animations/battery_low.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/battery_low.png")
             time.sleep(5)
-            avatar_overlay_instance.update_avatar_image("assets/animations/default_avatar.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
 
 
 # Event handlers for internet connection state or unstable
 def on_internet_change(status):
     if avatar_overlay_instance:
         if status == "connected":
-            avatar_overlay_instance.update_avatar_image("assets/animations/internet_connected.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/internet_connected.png")
             time.sleep(5)
-            avatar_overlay_instance.update_avatar_image("assets/animations/default_avatar.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
         elif status == "disconnected":
-            avatar_overlay_instance.update_avatar_image("assets/animations/internet_disconnected.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/internet_disconnected.png")
             time.sleep(5)
-            avatar_overlay_instance.update_avatar_image("assets/animations/default_avatar.png")
+            avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
 
 
 # Listener wrappers
