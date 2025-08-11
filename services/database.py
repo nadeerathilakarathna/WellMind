@@ -429,7 +429,7 @@ def get_avatar_status():
 
 class Configuration:
     def __init__(self):
-        self.configurations = ["avatar_status", "facial_expression_monitoring", "keystroke_dynamics_monitoring", "notification_status"]
+        self.configurations = ["avatar_status", "facial_expression_monitoring", "keystroke_dynamics_monitoring", "notification_status","avatar"]
         self.table_name = 'configurations'
 
         def insert_configurations(configurations):
@@ -462,6 +462,33 @@ class Configuration:
 
             insert_configurations(self.configurations)
             self.conn.close()
+    
+    def get_current_avatar(self):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"SELECT value FROM {self.table_name} WHERE configuration = 'avatar'")
+        row = self.cursor.fetchone()
+        self.conn.close()
+        if row:
+            if row[0] == 1:
+                return "female"
+            else :
+                return "male"
+            # return row[0]
+        else:
+            return None
+    
+    def set_avatar(self,avatar="female"):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        if avatar == "female":
+            self.cursor.execute(f"UPDATE {self.table_name} SET value = 1 WHERE configuration = 'avatar'")
+        else:
+            self.cursor.execute(f"UPDATE {self.table_name} SET value = 0 WHERE configuration = 'avatar'")
+        self.conn.commit()
+        self.conn.close()
 
     
     def avatar_is_running(self):
@@ -475,6 +502,8 @@ class Configuration:
             return bool(row[0])
         else:
             return True
+    
+
     
     def avatar_set_status(self, status):
         self.conn = create_connection()

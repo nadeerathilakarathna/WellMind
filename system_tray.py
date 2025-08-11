@@ -34,19 +34,36 @@ def exit_program(icon):
     except:
         pass
 
+def set_avatar_male():
+    configuration.set_avatar("male")
+    
+def set_avatar_female():
+    configuration.set_avatar("female")
 
+def is_avatar_male(item):
+    return configuration.get_current_avatar() == "male"
+
+def is_avatar_female(item):
+    return configuration.get_current_avatar() == "female"
  
 
 def run_tray():
+
+    # ======= Avatar Submenu ========
+    avatar_menu = pystray.Menu(
+        pystray.MenuItem("Male", set_avatar_male, checked=is_avatar_male, radio=True),
+        pystray.MenuItem("Female", set_avatar_female, checked=is_avatar_female, radio=True)
+    )
+
     # ======= Main Tray Menu ========
     tray_menu = pystray.Menu(
         pystray.MenuItem("WellMind", lambda: visit_dashboard(), default=True),
+        pystray.MenuItem("Avatar", avatar_menu),  # Nested Menu
         pystray.MenuItem("Enable Avatar", lambda: configuration.avatar_set_status(not(configuration.avatar_is_running())),checked=lambda item:configuration.avatar_is_running()),
         pystray.MenuItem("Enable Facial Expressions",lambda: configuration.facial_expression_set_status(not(configuration.facial_expression_is_running())),checked=lambda item:configuration.facial_expression_is_running()),
         pystray.MenuItem("Enable Keystroke Dynamics",lambda: configuration.keystroke_dynamics_set_status(not(configuration.keystroke_dynamics_is_running())),checked=lambda item:configuration.keystroke_dynamics_is_running()),
         pystray.MenuItem("Enable Recommendations",lambda: configuration.notifications_set_status(not(configuration.notifications_is_running())),checked=lambda item:configuration.notifications_is_running()),
         pystray.MenuItem("Generate Report", lambda: generate_report()),
-        # pystray.MenuItem("Avatar", avatar_menu),  # Nested Menu
         pystray.MenuItem("Exit", lambda: exit_program(icon))  # Exit
     )
 

@@ -28,12 +28,25 @@ def get_level(score):
 
 
 def get_recommendation(facial_value, keystroke_value) -> tuple:
-    level_facial = get_level(facial_value) #Stress level > None = 0 and 1,2,3,4,5
-    level_keystroke = get_level(keystroke_value) #Stress level > None = 0 and 1,2,3,4,5
-    final_level = level_facial if level_facial == level_keystroke else max(level_facial, level_keystroke)
+    master_facial_value = facial_value
+    master_keystroke_value = keystroke_value
+
+    if facial_value is None:
+        facial_value = 0
+    if keystroke_value is None:
+        keystroke_value = 0
+    
+    if facial_value == 0 or keystroke_value == 0:
+        final_level = get_level(max(facial_value, keystroke_value))
+    else:
+        final_level = get_level((facial_value + keystroke_value)/2)
+        
+    # level_facial = get_level(facial_value) #Stress level > None = 0 and 1,2,3,4,5
+    # level_keystroke = get_level(keystroke_value) #Stress level > None = 0 and 1,2,3,4,5
+    # final_level = level_facial if level_facial == level_keystroke else max(level_facial, level_keystroke)
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    store_realtime_stress(facial_value, keystroke_value, final_level,timestamp)
+    store_realtime_stress(master_facial_value, master_keystroke_value, final_level,timestamp)
 
     if final_level == 0:
         return (None,None,None,0) #No recommendations
