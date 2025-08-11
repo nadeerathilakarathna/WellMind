@@ -61,7 +61,7 @@ Tired of high-pressure deadlines leaving you drained? **WellMind** is your ultim
 
 ### User Onboarding
 
-![](screenshots/onboarding.jpg)
+![](screenshots/onboarding.JPG)
 
   
 _Kick off your journey with a quick, welcoming setup!_
@@ -70,7 +70,7 @@ _Kick off your journey with a quick, welcoming setup!_
 
 
 
-![](screenshots/dashboard.jpg)
+![](screenshots/dashboard.JPG)
 
   
 _Unlock insights into your stress trends and empowering suggestions!_
