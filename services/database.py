@@ -429,7 +429,7 @@ def get_avatar_status():
 
 class Configuration:
     def __init__(self):
-        self.configurations = ["avatar_status", "facial_expression_monitoring", "keystroke_dynamics_monitoring", "notification_status"]
+        self.configurations = ["avatar_status", "facial_expression_monitoring", "keystroke_dynamics_monitoring", "notification_status","avatar"]
         self.table_name = 'configurations'
 
         def insert_configurations(configurations):
@@ -462,6 +462,33 @@ class Configuration:
 
             insert_configurations(self.configurations)
             self.conn.close()
+    
+    def get_current_avatar(self):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute(f"SELECT value FROM {self.table_name} WHERE configuration = 'avatar'")
+        row = self.cursor.fetchone()
+        self.conn.close()
+        if row:
+            if row[0] == 1:
+                return "female"
+            else :
+                return "male"
+            # return row[0]
+        else:
+            return None
+    
+    def set_avatar(self,avatar="female"):
+        self.conn = create_connection()
+        self.cursor = self.conn.cursor()
+
+        if avatar == "female":
+            self.cursor.execute(f"UPDATE {self.table_name} SET value = 1 WHERE configuration = 'avatar'")
+        else:
+            self.cursor.execute(f"UPDATE {self.table_name} SET value = 0 WHERE configuration = 'avatar'")
+        self.conn.commit()
+        self.conn.close()
 
     
     def avatar_is_running(self):
@@ -475,6 +502,8 @@ class Configuration:
             return bool(row[0])
         else:
             return True
+    
+
     
     def avatar_set_status(self, status):
         self.conn = create_connection()
@@ -551,6 +580,8 @@ def get_stress_metrics(date=None):
     conn = create_connection()
     cursor = conn.cursor()
 
+    # date = datetime(2025, 8, 1).strftime("%Y-%m-%d")
+
     if date is None:
             date = datetime.now().strftime("%Y-%m-%d")
             # date = datetime.strptime(date, "%Y-%m-%d") + timedelta(days=-1)
@@ -593,14 +624,14 @@ def get_stress_metrics(date=None):
     peak_stress = None
 
     for row in rows:
-        if row[5] is not None:
+        if (row[5] is not None) and (row[5] != 0):
             current_stress = round(row[5], 2)
             break
     
     stress_values = []
 
     for row in rows:
-        if row[5] is not None:
+        if (row[5] is not None) and (row[5] != 0):
             stress_values.append(row[5])
     
     if stress_values:
@@ -699,6 +730,7 @@ def fetch_recent_recommendations(limit=5):
 def fetch_user_dashboard(option='daily',date=None):
     conn = create_connection()
     cursor = conn.cursor()
+    # date = datetime(2025, 8, 1).strftime("%Y-%m-%d")
 
     if date is None:
             date = datetime.now().strftime("%Y-%m-%d")

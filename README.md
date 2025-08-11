@@ -1,64 +1,102 @@
-**WellMind** <br>
-Enhancing workplace well-being for IT Professionals through AI-Powered Stress Detection
 
-**Team Members** <br>
-| Name    | Index      | GitHub Email               | University Email            | Mobile | 
-|----------------------|-----------|----------------------------|----------------------------|------------------------|
-| Thilakarathna G.H.N. | 2020T00913 | nadeerathilakarathna4@gmail.com | 2020t00913@stu.cmb.ac.lk | 0710401535            |
-| Gamlath J.R.        | 2020T00869 | gamlath18@gmail.com        | 2020t00869@stu.cmb.ac.lk | 0770327702 |
-| Ishan W.A.P.P.      | 2020T00876 | pubuduishan2000@gmail.com  | 2020t00876@stu.cmb.ac.lk | 0778830166 |
+# WellMind – Your Smart Companion for a Stress-Free Workday!
 
-**Introduction** <br>
-The modern IT industry is associated with high workloads, tight deadlines, and demanding schedules. <br>
-These conditions significantly contribute to elevated stress levels among IT professionals. <br>
-"WellMind" is an AI-powered stress detection system designed to monitor and improve workplace mental health. <br>
-It uses facial expressions and keystroke dynamics to detect the stress and provide recommendations through interactive avatar. <br>
-The system aims to create a healthier and more productive work environment. <br>
+![](screenshots/intro.jpg)
 
-**System Features** <br>
-Facial Expression Monitoring <br>
-Keystroke Dynamics Analysis <br>
-Multimodal Stress Detection <br>
-Real-Time Stress Feedback <br>
-Preference Management <br>
-Personalized Recommendation Engine <br>
-Historical Stress Visualization <br>
-Interactive Avatar Support <br>
-Local Data Storage <br>
+## Discover WellMind
 
-**Functional Requirements** <br>
-FR1 - The system shall capture facial expressions via the device's webcam. <br>
-FR2 - The system shall analyze facial expressions using AI models to detect stress. <br>
-FR3 - The system shall capture keystroke dynamics from the device's keyboard. <br>
-FR4 - The system shall analyze keystroke dynamics using AI models to detect stress. <br>
-FR5 - The system shall integrate facial expression and keystroke analyses for multimodal stress detection. <br>
-FR6 - The system shall allow the user to provide feedback on system recommendations by marking them as “Like” or “Unlike” via the interactive avatar. <br>
-FR7 - The system shall allow users to change their recommendation categories. <br>
-FR8 - The system shall recommend activities or content types based on detected stress levels and preferences. <br>
-FR9 - The system shall use stored data to generate personalized recommendations over time. <br>
-FR10 - The system shall display a historical stress graph on the user dashboard. <br>
-FR11 - The system shall feature an interactive avatar to provide feedback and suggestions to the user. <br>
-FR12 - The system shall animate the avatar based on user interactions (e.g., mouse, keyboard) and system events (e.g., USB plugged). <br>
-FR13 - The system shall store user profiles locally, including past stress levels, history, and preferences. <br>
+Tired of high-pressure deadlines leaving you drained? **WellMind** is your ultimate Windows app designed especially for IT pros like you! It gently monitors stress using your webcam and keyboard, delivering personalized tips to help you unwind and boost productivity. Stay calm, focused, and energized – all while keeping your data 100% private on your device. No internet, no hassle – just pure well-being!
 
-**Non Functional Requirements** <br>
-NFR1 - Secure Local Data Storage <br>
-Store user data securely on the local device to prevent unauthorized access. <br>
+## Exciting Features
 
-NFR2 - Low-Latency Real-Time Analysis <br>
-Perform real-time analysis with low latency to ensure seamless operation. <br>
+-   **Effortless Stress Tracking**: Let WellMind watch your facial expressions and typing habits to spot stress during your daily grind.
+-   **Tailored Wellness Tips**: Get instant, custom suggestions like deep breaths, quick stretches, or motivational breaks – perfectly suited to your needs!
+-   **Customizable Interactive Avatar**: Your friendly and Customizable interactive avatar animates with computer actions, such as connecting a power cable or plugging in a USB device.
+-   **Insightful Dashboard**: Dive into vibrant graphs showing your stress patterns daily, weekly, or monthly, plus a log of all your favorite tips.
+-   **Total Privacy & Control**: Everything stays secure on your PC – no sharing, no worries!
+-   **Easy Profile Setup**: Build your personal space and manage it anytime for peace of mind.
+-   **Quick Tray Access**: Toggle features, grab stress reports, or quit with a simple click – you're in charge!
 
-NFR3 - User-Friendly Interface <br>
-Provide a user-friendly and non-intrusive interface for ease of use. <br>
+## What You Need to Get Started
 
-NFR4 - Accurate Stress Detection <br>
-Ensure accurate stress detection with minimal false positives. <br>
+-   **Operating System**: Windows 10 or 11 – seamless compatibility for your everyday setup!
+    
+-   **Hardware Essentials**:
+    
+    -   **RAM**: Minimum 4GB (8GB recommended for optimal performance)
+        
+    -   **Processor**: Minimum Intel i3 or AMD Ryzen 3 equivalent
+        
+    -   **Webcam**: Integrated or dedicated webcam for facial expression analysis
+        
+    -   **Keyboard**: Standard keyboard for keystroke dynamics monitoring
+        
+    -   **Storage**: Minimum 2GB free disk space for local data storage (e.g., user profiles, stress history)
 
-NFR5 - Windows Compatibility <br>
-Compatible with the Windows operating system. <br>
+## Simple Installation
+
+1.  Grab the latest WellMind setup from our GitHub releases – it's free and ready to go!
+2.  Install it on your computer and restart the computer.
+3.  When your computer starts, enter your personal information (name, gender, birthday) to set up your profile.
+4.  After setup, start monitoring stress, follow the recommendations, and improve your effectiveness!
+
+## How to Use WellMind
+
+1.  **Jump Right In**:
+    -   Launch the app, add your details (name, gender, birthday), and let it personalize just for you.
+    -   It runs quietly in the background, keeping an eye on your well-being.
+2.  **Stress Detection Made Easy**:
+    -   WellMind scans your expressions and keystrokes as you work.
+    -   Every 20 minutes, it checks in – if stress spikes, a tip appears to brighten your day!
+3.  **Explore the Dashboard**:
+    -   Pop open the main view for real-time stress scores and colorful trend graphs.
+    -   Review past tips in the recommendations section.
+4.  **Play with the Avatar**:  
+    -   Your customizable avatar floats on your screen, animating with computer actions like connecting a charger or USB device.
+    -   It shares tips when you need them most – drag it around, or tweak its behavior to suit you!
+5.  **Tray Menu Magic**:
+    -   Right-click the icon to switch things on/off, pull up reports, or sign off effortlessly.
+
+## Stunning Screenshots
+
+### User Onboarding
+
+![](screenshots/onboarding.JPG)
+
+  
+_Kick off your journey with a quick, welcoming setup!_
+
+### Dashboard
 
 
 
+![](screenshots/dashboard.JPG)
+
+  
+_Unlock insights into your stress trends and empowering suggestions!_
 
 
+### Interactive Avatar
 
+
+![](screenshots/avatar.png)
+
+  
+_Your lively sidekick sharing tips and responding to your world!_
+
+### WellMind Report
+
+
+![](screenshots/stress_report.jpg)
+
+  
+_Daily breakdowns of stress levels – see what times you felt the pressure and how to conquer it!_
+
+## Need Help?
+
+Questions or feedback? Head to our GitHub and drop us a note – we're here to make your experience amazing!
+
+
+## Shoutouts
+
+Born from a final-year research project by G. H. N. Thilakarathna, J. R. Gamlath, and W. A. P. P. Ishan at the Department of ICT, Faculty of Technology, University of Colombo (August 2025, 19/20 Batch - Group 20).
