@@ -10,6 +10,7 @@ from services.database import fetch_recent_recommendations
 from services.database import get_feedback_counts
 from services.database import get_stress_metrics
 from services.database import fetch_user_dashboard
+import threading
 
 class DashboardScreen(ctk.CTkFrame):
     def __init__(self, parent, controller):
