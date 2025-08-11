@@ -27,7 +27,7 @@ def launch_avatar_overlay():
         if current_avatar != avatar_config.get_current_avatar():
             current_avatar = avatar_config.get_current_avatar()
             avatar_overlay_instance.update_avatar_image(f"assets/animations/{avatar_config.get_current_avatar()}/default_avatar.png")
-        time.sleep(1.0)
+        time.sleep(5.0)
 
 # Event handlers for usb plug and unplug
 def on_usb_change(event_type):

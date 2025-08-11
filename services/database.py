@@ -624,14 +624,14 @@ def get_stress_metrics(date=None):
     peak_stress = None
 
     for row in rows:
-        if row[5] is not None:
+        if (row[5] is not None) and (row[5] != 0):
             current_stress = round(row[5], 2)
             break
     
     stress_values = []
 
     for row in rows:
-        if row[5] is not None:
+        if (row[5] is not None) and (row[5] != 0):
             stress_values.append(row[5])
     
     if stress_values:
